@@ -1,7 +1,6 @@
 package com.infusion.reader;
 
 import com.infusion.Row;
-import com.infusion.reader.datasource.InputDataSource;
 import com.infusion.reader.parser.LineParser;
 import org.junit.Before;
 import org.junit.Test;
@@ -11,7 +10,6 @@ import org.mockito.runners.MockitoJUnitRunner;
 
 import java.util.concurrent.BlockingQueue;
 
-import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.argThat;
@@ -25,7 +23,7 @@ public class SingleThreadedInputReaderTest {
 
     private SingleThreadedInputReader singleThreadedInputReader;
 
-    private Row terminatingRow = new Row(null, null, null);
+    private static final Row TERMINATING_ROW = new Row(null, null, Double.NaN);
 
     private class EqualityMatcher<T> extends ArgumentMatcher<T> {
 
@@ -45,49 +43,45 @@ public class SingleThreadedInputReaderTest {
     private BlockingQueue<Row> blockingQueue;
 
     @Mock
-    private InputDataSource inputDataSource;
-
-    @Mock
     private LineParser lineParser;
 
     @Before
     public void setup(){
         when(blockingQueue.add(any(Row.class))).thenReturn(true);
-        this.singleThreadedInputReader = new SingleThreadedInputReader(blockingQueue, inputDataSource, lineParser);
     }
 
     @Test
     public void shouldTerminateIfInputDataNotFoundOrEOFReached(){
         //given
-        when(inputDataSource.hasNextLine()).thenReturn(false);
+        singleThreadedInputReader = new SingleThreadedInputReader("src/test/resources/non-existing-file.txt", blockingQueue, lineParser);
 
         //when
         singleThreadedInputReader.processInputData();
 
         //then
-        verify(blockingQueue).add(argThat(new EqualityMatcher<Row>(terminatingRow)));
-        assertEquals(0, blockingQueue.size());
+        verify(blockingQueue, times(1)).add(argThat(new EqualityMatcher<>(TERMINATING_ROW)));
+        verifyNoMoreInteractions(blockingQueue);
     }
 
     @Test
     public void shouldSkipTheLineIfItCantBeParsedAndPutNothingToQueue(){
         //given
-        when(inputDataSource.hasNextLine()).thenReturn(true).thenReturn(false);
-        when(inputDataSource.getNextLine()).thenReturn("");
+        singleThreadedInputReader = new SingleThreadedInputReader("src/test/resources/incorrect_input_.txt", blockingQueue, lineParser);
         when(lineParser.parseLine(anyString())).thenReturn(null);
 
         //when
         singleThreadedInputReader.processInputData();
 
         //then
-        verify(inputDataSource, times(1)).getNextLine();
+        verify(blockingQueue, times(1)).add(argThat(new EqualityMatcher<>(TERMINATING_ROW)));
+        verifyNoMoreInteractions(blockingQueue);
     }
 
     @Test
     public void shouldPutTheRowIntoQueueIfTheLineIsValid(){
         //given
-        when(inputDataSource.hasNextLine()).thenReturn(true).thenReturn(false);
-        when(lineParser.parseLine(anyString())).thenReturn(new Row("", "", ""));
+        singleThreadedInputReader = new SingleThreadedInputReader("src/test/resources/example_input_short.txt", blockingQueue, lineParser);
+        when(lineParser.parseLine(anyString())).thenReturn(new Row("", "", 0.0));
 
         //when
         singleThreadedInputReader.processInputData();
