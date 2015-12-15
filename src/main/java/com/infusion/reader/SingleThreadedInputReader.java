@@ -45,10 +45,11 @@ public class SingleThreadedInputReader implements InputReader {
             }
         } catch (IOException e) {
             e.printStackTrace();
-            blockingQueue.add(TERMINATING_ROW);
             return;
+        } finally {
+            blockingQueue.add(TERMINATING_ROW);
         }
-        blockingQueue.add(TERMINATING_ROW);
+
     }
 
     @Override

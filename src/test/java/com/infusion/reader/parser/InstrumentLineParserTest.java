@@ -37,7 +37,7 @@ public class InstrumentLineParserTest {
         assertNotNull(row);
         assertEquals("INSTRUMENT1", row.getIntrumentName());
         assertEquals("01-Jan-1996", row.getDate());
-        assertEquals("2.4655", row.getPrice());
+        assertEquals(2.4655d, row.getPrice(), 0.0001);
     }
 
     @Test

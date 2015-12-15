@@ -1,7 +1,6 @@
 package com.infusion;
 
 import com.infusion.reader.InputReader;
-import org.junit.Test;
 import org.mockito.Mock;
 
 import java.util.concurrent.BlockingQueue;
@@ -11,7 +10,7 @@ import java.util.concurrent.BlockingQueue;
  */
 public class InstrumentMetricCalculationEngineTest {
 
-    private InstrumentMetricCalculationEngine instrumentMetricCalculationEngine;
+    private InstrumentMeanValuesCalculationEngine instrumentMeanValuesCalculationEngine;
 
     @Mock
     private InputReader inputReader;

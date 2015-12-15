@@ -14,15 +14,15 @@ import static com.infusion.reader.SingleThreadedInputReader.TERMINATING_ROW;
 /**
  * Created by tvolkov on 12/14/15.
  */
-public class InstrumentMetricCalculationEngine implements CalculationEngine {
+public class InstrumentMeanValuesCalculationEngine implements CalculationEngine {
 
     private InputReader inputReader;
     private BlockingQueue<Row> blockingQueue;
     private CorrectionProvider correctionProvider;
     private Map<String, MeanCalculator> meanCalculatorMap;
 
-    public InstrumentMetricCalculationEngine(String pathToFile, Map<String, MeanCalculator> meanCalculatorMap, CorrectionProvider correctionProvider){
-        this.blockingQueue = new ArrayBlockingQueue<>(1000);
+    public InstrumentMeanValuesCalculationEngine(String pathToFile, Map<String, MeanCalculator> meanCalculatorMap, CorrectionProvider correctionProvider, int queueCapacity){
+        this.blockingQueue = new ArrayBlockingQueue<>(queueCapacity);
         this.inputReader = new SingleThreadedInputReader(pathToFile, blockingQueue, new InstrumentLineParser());
         this.meanCalculatorMap = meanCalculatorMap;
         this.correctionProvider = correctionProvider;
@@ -47,7 +47,7 @@ public class InstrumentMetricCalculationEngine implements CalculationEngine {
         }
 
     }
-
+    //TODO create interface like MetricsPrinter to allow output to different places
     private void printCalculatedMetrics() {
         for (Map.Entry<String, MeanCalculator> entry : meanCalculatorMap.entrySet()){
             System.out.println(entry.getKey() + ": " + entry.getValue().getResult());
