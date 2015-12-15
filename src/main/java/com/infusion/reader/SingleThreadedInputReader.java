@@ -24,6 +24,7 @@ import java.util.concurrent.BlockingQueue;
 public class SingleThreadedInputReader implements InputReader {
 
     private BlockingQueue<Row> blockingQueue;
+    //TODO move lineParser to CalculationEngine
     private LineParser lineParser;
     private String pathToFile;
 
