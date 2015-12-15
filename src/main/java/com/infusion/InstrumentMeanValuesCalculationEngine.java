@@ -24,8 +24,10 @@ public class InstrumentMeanValuesCalculationEngine implements CalculationEngine 
     private long totalExecutionTime;
     private long numberOfLinesProcessed;
 
-    public InstrumentMeanValuesCalculationEngine(String pathToFile, Map<String, MeanCalculator> meanCalculatorMap, CorrectionProvider correctionProvider, int queueCapacity){
-        this.blockingQueue = new ArrayBlockingQueue<>(queueCapacity);
+    private static final int DEFAULT_QUEUE_CAPACITY = 100000;
+
+    public InstrumentMeanValuesCalculationEngine(String pathToFile, Map<String, MeanCalculator> meanCalculatorMap, CorrectionProvider correctionProvider){
+        this.blockingQueue = new ArrayBlockingQueue<>(DEFAULT_QUEUE_CAPACITY);
         this.inputReader = new SingleThreadedInputReader(pathToFile, blockingQueue, new InstrumentLineParser());
         this.meanCalculatorMap = meanCalculatorMap;
         this.correctionProvider = correctionProvider;

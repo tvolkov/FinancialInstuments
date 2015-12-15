@@ -7,9 +7,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class App {
-
-    public static final int DEFAULT_QUEUE_CAPACITY = 100000;
-
     public static void main( String[] args ) {
         Map<String, MeanCalculator> meanCalculatorMap = new HashMap<String, MeanCalculator>(){{
             put("INSTRUMENT1", new MeanCalculator());
@@ -24,8 +21,6 @@ public class App {
             }
         };
         new InstrumentMeanValuesCalculationEngine("src/test/resources/large_file.txt",
-            meanCalculatorMap, correctionProvider, DEFAULT_QUEUE_CAPACITY).calculateMetrics();
-
-        Date end = new Date();
+            meanCalculatorMap, correctionProvider).calculateMetrics();
     }
 }
