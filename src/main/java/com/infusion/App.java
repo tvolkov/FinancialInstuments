@@ -11,8 +11,6 @@ public class App {
     public static final int DEFAULT_QUEUE_CAPACITY = 100000;
 
     public static void main( String[] args ) {
-        Date start = new Date();
-
         Map<String, MeanCalculator> meanCalculatorMap = new HashMap<String, MeanCalculator>(){{
             put("INSTRUMENT1", new MeanCalculator());
             put("INSTRUMENT2", new MeanCalculator("Nov-2014"));
@@ -29,8 +27,5 @@ public class App {
             meanCalculatorMap, correctionProvider, DEFAULT_QUEUE_CAPACITY).calculateMetrics();
 
         Date end = new Date();
-
-        long diff = end.getTime() - start.getTime();
-        System.out.println(diff / 1000);
     }
 }

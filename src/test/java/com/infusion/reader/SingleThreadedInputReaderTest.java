@@ -9,6 +9,7 @@ import org.mockito.ArgumentMatcher;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
+import java.nio.file.NoSuchFileException;
 import java.util.concurrent.BlockingQueue;
 
 import static org.mockito.Matchers.any;

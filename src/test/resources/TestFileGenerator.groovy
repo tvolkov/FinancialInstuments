@@ -10,9 +10,13 @@ if (file.exists()){
 
 def numberOfLines = 50000000
 for (int i = 0; i < numberOfLines; i++){
+    float percent = (i * 100.0f) / numberOfLines
+    print percent + "%"
+    print "\r"
+
     "${ThreadLocalRandom.current().nextInt(28)}-${getMonthName(ThreadLocalRandom.current().nextInt(12))}-${getRandomYear()}"
 
-    file << "INSTRUMENT${instrumentId},${date},${price}"
+    file << "INSTRUMENT${instrumentId},${date},${price}${System.lineSeparator()}"
 }
 
 def getInstrumentId(){

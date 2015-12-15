@@ -21,6 +21,9 @@ public class InstrumentMeanValuesCalculationEngine implements CalculationEngine 
     private CorrectionProvider correctionProvider;
     private Map<String, MeanCalculator> meanCalculatorMap;
 
+    private long totalExecutionTime;
+    private long numberOfLinesProcessed;
+
     public InstrumentMeanValuesCalculationEngine(String pathToFile, Map<String, MeanCalculator> meanCalculatorMap, CorrectionProvider correctionProvider, int queueCapacity){
         this.blockingQueue = new ArrayBlockingQueue<>(queueCapacity);
         this.inputReader = new SingleThreadedInputReader(pathToFile, blockingQueue, new InstrumentLineParser());
@@ -29,12 +32,14 @@ public class InstrumentMeanValuesCalculationEngine implements CalculationEngine 
     }
 
     @Override
-    public void calculateMetrics() {
+    public void calculateMetrics() {   
+        long startTime = System.currentTimeMillis();
         (new Thread(inputReader)).start();
 
         try {
             Row row;
             while (!((row = blockingQueue.take()).equals(TERMINATING_ROW))){
+                numberOfLinesProcessed++;
                 if (meanCalculatorMap.containsKey(row.getIntrumentName())){
                     meanCalculatorMap.get(row.getIntrumentName()).increment(row.getDate(),
                             row.getPrice() * correctionProvider.getCorrectionForInstrument(row.getIntrumentName()));
@@ -43,14 +48,21 @@ public class InstrumentMeanValuesCalculationEngine implements CalculationEngine 
         } catch (InterruptedException e) {
             return;
         } finally {
-            printCalculatedMetrics();
+            long endTime = System.currentTimeMillis();
+            this.totalExecutionTime = (endTime - startTime ) / 1000;
+            printInfo();
         }
 
     }
     //TODO create interface like MetricsPrinter to allow output to different places
-    private void printCalculatedMetrics() {
+    private void printInfo() {
+        System.out.println("Calculated values:");
         for (Map.Entry<String, MeanCalculator> entry : meanCalculatorMap.entrySet()){
             System.out.println(entry.getKey() + ": " + entry.getValue().getResult());
         }
+        System.out.println("------------------");
+        System.out.println("Number of lines processed: " + numberOfLinesProcessed);
+        System.out.println("------------------");
+        System.out.println("Time elapsed: " + totalExecutionTime);
     }
 }
