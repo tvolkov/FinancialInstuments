@@ -8,6 +8,7 @@ import org.apache.commons.math3.stat.descriptive.moment.Mean;
 public class MeanCalculator {
 
     private Mean mean;
+    //todo make it operate on dates instead of strings
     private String averagingPeriod;
 
     public MeanCalculator(){

@@ -1,6 +1,5 @@
 package com.infusion.reader;
 
-import com.infusion.Row;
 import com.infusion.reader.parser.LineParser;
 
 import java.io.BufferedReader;
@@ -23,34 +22,28 @@ import java.util.concurrent.BlockingQueue;
  */
 public class SingleThreadedInputReader implements InputReader {
 
-    private BlockingQueue<Row> blockingQueue;
+    private BlockingQueue<String> blockingQueue;
     //TODO move lineParser to CalculationEngine
-    private LineParser lineParser;
     private String pathToFile;
 
-    public static final Row TERMINATING_ROW = new Row(null, null, Double.NaN);
+    public static final String TERMINATING_ROW = "####END_OF_DATA####";
 
-    public SingleThreadedInputReader(String pathToFile, BlockingQueue<Row> blockingQueue, LineParser lineParser){
+    public SingleThreadedInputReader(String pathToFile, BlockingQueue<String> blockingQueue){
         this.pathToFile = pathToFile;
         this.blockingQueue = blockingQueue;
-        this.lineParser = lineParser;
     }
-
+    //todo if the large file doesn't have crlf's, then it will lead to oom exception
     public void processInputData() {
         try (BufferedReader br = Files.newBufferedReader(Paths.get(pathToFile), StandardCharsets.UTF_8)) {
             for (String line; (line = br.readLine()) != null;) {
-                Row row = lineParser.parseLine(line);
-                if (row != null){
-                    blockingQueue.add(row);
-                }
+                blockingQueue.add(line);
             }
         } catch (IOException e) {
+            //todo throw more concrete exception here
             e.printStackTrace();
-            return;
         } finally {
             blockingQueue.add(TERMINATING_ROW);
         }
-
     }
 
     @Override

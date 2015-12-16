@@ -23,6 +23,7 @@
                             <goal>execute</goal>
                         </goals>
                         <phase>generate-resources</phase>
+                        <!-- TODO need to run this script on the option passed to mvn -->
                         <configuration>
                             <source>${basedir}/src/test/resources/TestFileGenerator.groovy</source>
                         </configuration>

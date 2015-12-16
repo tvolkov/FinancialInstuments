@@ -10,6 +10,7 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
 import static com.infusion.reader.SingleThreadedInputReader.TERMINATING_ROW;
+import com.infusion.reader.parser.LineParser;
 
 /**
  * Created by tvolkov on 12/14/15.
@@ -17,31 +18,36 @@ import static com.infusion.reader.SingleThreadedInputReader.TERMINATING_ROW;
 public class InstrumentMeanValuesCalculationEngine implements CalculationEngine {
 
     private InputReader inputReader;
-    private BlockingQueue<Row> blockingQueue;
+    private BlockingQueue<String> blockingQueue;
     private CorrectionProvider correctionProvider;
     private Map<String, MeanCalculator> meanCalculatorMap;
+    private LineParser lineParser;
 
     private long totalExecutionTime;
     private long numberOfLinesProcessed;
 
     private static final int DEFAULT_QUEUE_CAPACITY = 100000;
 
-    public InstrumentMeanValuesCalculationEngine(String pathToFile, Map<String, MeanCalculator> meanCalculatorMap, CorrectionProvider correctionProvider){
+    public InstrumentMeanValuesCalculationEngine(String pathToFile, Map<String, MeanCalculator> meanCalculatorMap,
+                                                 CorrectionProvider correctionProvider, LineParser lineParser){
         this.blockingQueue = new ArrayBlockingQueue<>(DEFAULT_QUEUE_CAPACITY);
-        this.inputReader = new SingleThreadedInputReader(pathToFile, blockingQueue, new InstrumentLineParser());
+        this.inputReader = new SingleThreadedInputReader(pathToFile, blockingQueue);
         this.meanCalculatorMap = meanCalculatorMap;
         this.correctionProvider = correctionProvider;
+        this.lineParser = lineParser;
     }
 
     @Override
     public void calculateMetrics() {   
         long startTime = System.currentTimeMillis();
-        (new Thread(inputReader)).start();
+        startReaderThread();
 
         try {
-            Row row;
-            while (!((row = blockingQueue.take()).equals(TERMINATING_ROW))){
+            String line;
+            while (!((line = blockingQueue.take()).equals(TERMINATING_ROW))){
+                //todo in order to avoid queue filling we'd rather process the data from multiple threads
                 numberOfLinesProcessed++;
+                Row row = lineParser.parseLine(line);
                 if (meanCalculatorMap.containsKey(row.getIntrumentName())){
                     meanCalculatorMap.get(row.getIntrumentName()).increment(row.getDate(),
                             row.getPrice() * correctionProvider.getCorrectionForInstrument(row.getIntrumentName()));
@@ -56,6 +62,13 @@ public class InstrumentMeanValuesCalculationEngine implements CalculationEngine 
         }
 
     }
+
+    private void startReaderThread(){
+        Thread readerThread = new Thread(inputReader);
+        readerThread.setName("ReaderThread");
+        readerThread.start();
+    }
+
     //TODO create interface like MetricsPrinter to allow output to different places
     private void printInfo() {
         System.out.println("Calculated values:");
