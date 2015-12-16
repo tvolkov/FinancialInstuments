@@ -14,8 +14,6 @@ for (int i = 0; i < numberOfLines; i++){
     print percent + "%"
     print "\r"
 
-    "${ThreadLocalRandom.current().nextInt(28)}-${getMonthName(ThreadLocalRandom.current().nextInt(12))}-${getRandomYear()}"
-
     file << "INSTRUMENT${instrumentId},${date},${price}${System.lineSeparator()}"
 }
 
