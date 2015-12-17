@@ -50,7 +50,6 @@ public class InstrumentMeanValuesCalculationEngine implements CalculationEngine 
                     correctionProvider)));
         }
         calculators.shutdown();
-        System.out.println("shutdown, await termination");
         try {
             calculators.awaitTermination(1, TimeUnit.MINUTES);
         } catch (InterruptedException e) {
