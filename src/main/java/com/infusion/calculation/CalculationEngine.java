@@ -1,4 +1,4 @@
-package com.infusion;
+package com.infusion.calculation;
 
 public interface CalculationEngine {
 

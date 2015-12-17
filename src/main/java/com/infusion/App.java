@@ -1,10 +1,11 @@
 package com.infusion;
 
+import com.infusion.calculation.InstrumentMeanValuesCalculationEngine;
+import com.infusion.calculation.MeanCalculator;
 import com.infusion.correction.CorrectionProvider;
-import com.infusion.reader.parser.InstrumentLineParser;
-import com.infusion.reader.parser.LineParser;
+import com.infusion.calculation.parser.InstrumentLineParser;
+import com.infusion.calculation.parser.LineParser;
 
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -17,11 +18,8 @@ public class App {
         }};
 
         //TODO create real correction provider
-        CorrectionProvider correctionProvider = new CorrectionProvider() {
-            @Override
-            public double getCorrectionForInstrument(String instrument) {
-                return 1d;
-            }
+        CorrectionProvider correctionProvider = (String instrumentName) -> {
+            return 1d;
         };
 
         LineParser lineParser = new InstrumentLineParser();

@@ -1,16 +1,16 @@
-package com.infusion;
+package com.infusion.calculation;
 
 import com.infusion.correction.CorrectionProvider;
 import com.infusion.reader.InputReader;
 import com.infusion.reader.SingleThreadedInputReader;
-import com.infusion.reader.parser.InstrumentLineParser;
 
 import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
-import static com.infusion.reader.SingleThreadedInputReader.TERMINATING_ROW;
-import com.infusion.reader.parser.LineParser;
+import com.infusion.calculation.parser.LineParser;
 
 /**
  * Created by tvolkov on 12/14/15.
@@ -27,6 +27,7 @@ public class InstrumentMeanValuesCalculationEngine implements CalculationEngine 
     private long numberOfLinesProcessed;
 
     private static final int DEFAULT_QUEUE_CAPACITY = 100000;
+    private static final int DEFAULT_THREAD_POOL_SIZE = 2;
 
     public InstrumentMeanValuesCalculationEngine(String pathToFile, Map<String, MeanCalculator> meanCalculatorMap,
                                                  CorrectionProvider correctionProvider, LineParser lineParser){
@@ -42,24 +43,28 @@ public class InstrumentMeanValuesCalculationEngine implements CalculationEngine 
         long startTime = System.currentTimeMillis();
         startReaderThread();
 
-        try {
-            String line;
-            while (!((line = blockingQueue.take()).equals(TERMINATING_ROW))){
-                //todo in order to avoid queue filling we'd rather process the data from multiple threads
-                numberOfLinesProcessed++;
-                Row row = lineParser.parseLine(line);
-                if (meanCalculatorMap.containsKey(row.getIntrumentName())){
-                    meanCalculatorMap.get(row.getIntrumentName()).increment(row.getDate(),
-                            row.getPrice() * correctionProvider.getCorrectionForInstrument(row.getIntrumentName()));
-                }
-            }
-        } catch (InterruptedException e) {
-            return;
-        } finally {
-            long endTime = System.currentTimeMillis();
-            this.totalExecutionTime = (endTime - startTime ) / 1000;
-            printInfo();
+        ExecutorService executorService = Executors.newFixedThreadPool(DEFAULT_THREAD_POOL_SIZE);
+        for (int i = 0; i < DEFAULT_THREAD_POOL_SIZE; i++){
+            executorService.submit(new CalculationWorker(blockingQueue, meanCalculatorMap));
         }
+//        try {
+//            String line;
+//            while (!((line = blockingQueue.take()).equals(TERMINATING_ROW))){
+//                //todo in order to avoid queue filling we'd rather process the data from multiple threads
+//                numberOfLinesProcessed++;
+//                Row row = lineParser.parseLine(line);
+//                if (meanCalculatorMap.containsKey(row.getIntrumentName())){
+//                    meanCalculatorMap.get(row.getIntrumentName()).increment(row.getDate(),
+//                            row.getPrice() * correctionProvider.getCorrectionForInstrument(row.getIntrumentName()));
+//                }
+//            }
+//        } catch (InterruptedException e) {
+//            return;
+//        } finally {
+//            long endTime = System.currentTimeMillis();
+//            this.totalExecutionTime = (endTime - startTime ) / 1000;
+//            printInfo();
+//        }
 
     }
 

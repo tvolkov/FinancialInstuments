@@ -1,4 +1,4 @@
-package com.infusion;
+package com.infusion.calculation;
 
 /**
  * Created by tvolkov on 12.12.15.

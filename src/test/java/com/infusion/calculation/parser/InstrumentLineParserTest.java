@@ -1,6 +1,6 @@
-package com.infusion.reader.parser;
+package com.infusion.calculation.parser;
 
-import com.infusion.Row;
+import com.infusion.calculation.Row;
 import static junit.framework.Assert.assertNotNull;
 import static junit.framework.TestCase.assertNull;
 import static org.junit.Assert.assertEquals;

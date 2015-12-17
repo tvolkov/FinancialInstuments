@@ -1,4 +1,4 @@
-package com.infusion;
+package com.infusion.calculation;
 
 import org.apache.commons.math3.stat.descriptive.moment.Mean;
 

@@ -1,6 +1,6 @@
-package com.infusion.reader.parser;
+package com.infusion.calculation.parser;
 
-import com.infusion.Row;
+import com.infusion.calculation.Row;
 
 /**
  * Created by tvolkov on 12/14/15.

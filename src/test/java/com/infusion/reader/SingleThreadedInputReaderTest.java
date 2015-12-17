@@ -1,7 +1,7 @@
 package com.infusion.reader;
 
-import com.infusion.Row;
-import com.infusion.reader.parser.LineParser;
+import com.infusion.calculation.Row;
+import com.infusion.calculation.parser.LineParser;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
