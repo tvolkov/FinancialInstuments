@@ -6,26 +6,31 @@ import com.infusion.correction.CorrectionProvider;
 import com.infusion.calculation.parser.InstrumentLineParser;
 import com.infusion.calculation.parser.LineParser;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
 public class App {
     public static void main( String[] args ) {
-        Map<String, MeanCalculator> meanCalculatorMap = new HashMap<String, MeanCalculator>(){{
+
+        Map<String, MeanCalculator> meanCalculatorMap = Collections.unmodifiableMap(new HashMap<String, MeanCalculator>(){{
             put("INSTRUMENT1", new MeanCalculator());
             put("INSTRUMENT2", new MeanCalculator("Nov-2014"));
             put("INSTRUMENT3", new MeanCalculator("2014"));
-        }};
+        }});
 
         //TODO create real correction provider
-        CorrectionProvider correctionProvider = (String instrumentName) -> {
-            return 1d;
+//        CorrectionProvider correctionProvider = (String instrumentName) -> 1d;
+
+        CorrectionProvider correctionProvider = new CorrectionProvider() {
+            @Override
+            public double getCorrectionForInstrument(String instrument) {
+                return 1d;
+            }
         };
 
-        LineParser lineParser = new InstrumentLineParser();
-
         //todo use some DI framework to handle dependencies
-        new InstrumentMeanValuesCalculationEngine("src/test/resources/large_file.txt",
-            meanCalculatorMap, correctionProvider, lineParser).calculateMetrics();
+        new InstrumentMeanValuesCalculationEngine("src/test/resources/example_input.txt",
+            meanCalculatorMap, correctionProvider).calculateMetrics();
     }
 }

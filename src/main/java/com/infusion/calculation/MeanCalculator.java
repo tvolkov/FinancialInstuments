@@ -2,14 +2,15 @@ package com.infusion.calculation;
 
 import org.apache.commons.math3.stat.descriptive.moment.Mean;
 
-/**
- * Created by tvolkov on 12/14/15.
- */
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+
 public class MeanCalculator {
 
-    private Mean mean;
+    private final Mean mean;
     //todo make it operate on dates instead of strings
-    private String averagingPeriod;
+    private final String averagingPeriod;
+    private final Lock lock = new ReentrantLock();
 
     public MeanCalculator(){
         this.mean = new Mean();
@@ -23,7 +24,12 @@ public class MeanCalculator {
 
     public void increment(String date, double value){
         if (isDateWithinAveragingPeriod(date)){
-            mean.increment(value);
+            lock.lock();
+            try {
+                mean.increment(value);
+            } finally {
+                lock.unlock();
+            }
         }
     }
 

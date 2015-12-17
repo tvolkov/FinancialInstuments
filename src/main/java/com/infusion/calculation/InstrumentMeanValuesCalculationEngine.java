@@ -4,24 +4,24 @@ import com.infusion.correction.CorrectionProvider;
 import com.infusion.reader.InputReader;
 import com.infusion.reader.SingleThreadedInputReader;
 
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
-import com.infusion.calculation.parser.LineParser;
-
-/**
- * Created by tvolkov on 12/14/15.
- */
 public class InstrumentMeanValuesCalculationEngine implements CalculationEngine {
 
-    private InputReader inputReader;
-    private BlockingQueue<String> blockingQueue;
-    private CorrectionProvider correctionProvider;
-    private Map<String, MeanCalculator> meanCalculatorMap;
-    private LineParser lineParser;
+    private final InputReader inputReader;
+    private final BlockingQueue<String> blockingQueue = new ArrayBlockingQueue<>(DEFAULT_QUEUE_CAPACITY);
+    private final Map<String, MeanCalculator> meanCalculatorMap;
+    private final CorrectionProvider correctionProvider;
+    private final Set<Future<Long>> linesProcessed = new HashSet<>();
 
     private long totalExecutionTime;
     private long numberOfLinesProcessed;
@@ -30,48 +30,49 @@ public class InstrumentMeanValuesCalculationEngine implements CalculationEngine 
     private static final int DEFAULT_THREAD_POOL_SIZE = 2;
 
     public InstrumentMeanValuesCalculationEngine(String pathToFile, Map<String, MeanCalculator> meanCalculatorMap,
-                                                 CorrectionProvider correctionProvider, LineParser lineParser){
-        this.blockingQueue = new ArrayBlockingQueue<>(DEFAULT_QUEUE_CAPACITY);
+                                                 CorrectionProvider correctionProvider){
         this.inputReader = new SingleThreadedInputReader(pathToFile, blockingQueue);
         this.meanCalculatorMap = meanCalculatorMap;
         this.correctionProvider = correctionProvider;
-        this.lineParser = lineParser;
     }
 
     @Override
     public void calculateMetrics() {   
         long startTime = System.currentTimeMillis();
-        startReaderThread();
+        ExecutorService reader = Executors.newSingleThreadExecutor();
+        reader.submit(inputReader);
+        reader.shutdown();
 
-        ExecutorService executorService = Executors.newFixedThreadPool(DEFAULT_THREAD_POOL_SIZE);
+        ExecutorService calculators = Executors.newFixedThreadPool(DEFAULT_THREAD_POOL_SIZE);
         for (int i = 0; i < DEFAULT_THREAD_POOL_SIZE; i++){
-            executorService.submit(new CalculationWorker(blockingQueue, meanCalculatorMap));
+            System.out.println("Starting new calculator thread");
+            linesProcessed.add(calculators.submit(new CalculationWorker(blockingQueue, meanCalculatorMap,
+                    correctionProvider)));
         }
-//        try {
-//            String line;
-//            while (!((line = blockingQueue.take()).equals(TERMINATING_ROW))){
-//                //todo in order to avoid queue filling we'd rather process the data from multiple threads
-//                numberOfLinesProcessed++;
-//                Row row = lineParser.parseLine(line);
-//                if (meanCalculatorMap.containsKey(row.getIntrumentName())){
-//                    meanCalculatorMap.get(row.getIntrumentName()).increment(row.getDate(),
-//                            row.getPrice() * correctionProvider.getCorrectionForInstrument(row.getIntrumentName()));
-//                }
-//            }
-//        } catch (InterruptedException e) {
-//            return;
-//        } finally {
-//            long endTime = System.currentTimeMillis();
-//            this.totalExecutionTime = (endTime - startTime ) / 1000;
-//            printInfo();
-//        }
+        calculators.shutdown();
+        System.out.println("shutdown, await termination");
+        try {
+            calculators.awaitTermination(1, TimeUnit.MINUTES);
+        } catch (InterruptedException e) {
+            System.out.println(e.getMessage());
+            throw new RuntimeException(e);
+        }
 
-    }
+        long endTime = System.currentTimeMillis();
 
-    private void startReaderThread(){
-        Thread readerThread = new Thread(inputReader);
-        readerThread.setName("ReaderThread");
-        readerThread.start();
+        for (Future<Long> future : linesProcessed){
+            try {
+                numberOfLinesProcessed += future.get();
+            } catch (InterruptedException | ExecutionException e) {
+                System.out.println(e.getMessage());
+                throw new RuntimeException(e);
+            }
+        }
+
+        this.totalExecutionTime = endTime - startTime;
+
+        printInfo();
+
     }
 
     //TODO create interface like MetricsPrinter to allow output to different places
@@ -83,6 +84,6 @@ public class InstrumentMeanValuesCalculationEngine implements CalculationEngine 
         System.out.println("------------------");
         System.out.println("Number of lines processed: " + numberOfLinesProcessed);
         System.out.println("------------------");
-        System.out.println("Time elapsed: " + totalExecutionTime);
+        System.out.println("Time elapsed: " + (totalExecutionTime > 1000 ? totalExecutionTime / 1000 + "s" : totalExecutionTime + "ms"));
     }
 }
