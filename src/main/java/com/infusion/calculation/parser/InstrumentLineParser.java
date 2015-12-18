@@ -20,6 +20,7 @@ public class InstrumentLineParser implements LineParser {
         }
         String[] tokens = line.split(SEPARATOR);
         if (tokens.length != 3){
+            System.out.println("InstrumentLineParser - forbidden line: " + line);
             return null;
         }
         Row row = new Row(tokens[0], tokens[1], Double.parseDouble(tokens[2]));

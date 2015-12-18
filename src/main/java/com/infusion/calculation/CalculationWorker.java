@@ -14,12 +14,10 @@ import static com.infusion.reader.SingleThreadedInputReader.TERMINATING_ROW;
 
 public class CalculationWorker implements Callable<Long> {
 
-    private BlockingQueue<String> blockingQueue;
-    //todo this map needs to be synchronized
-    private Map<String, MeanCalculator> meanCalculatorMap;
-    //todo probably make it a singletone
-    private LineParser lineParser = new InstrumentLineParser();
-    private CorrectionProvider correctionProvider;
+    private final BlockingQueue<String> blockingQueue;
+    private final Map<String, MeanCalculator> meanCalculatorMap;
+    private final LineParser lineParser = new InstrumentLineParser();
+    private final CorrectionProvider correctionProvider;
     private long numberOfLinesProcessed;
 
     public CalculationWorker(BlockingQueue<String> blockingQueue, Map<String, MeanCalculator> meanCalculatorMap,
@@ -31,29 +29,24 @@ public class CalculationWorker implements Callable<Long> {
 
     @Override
     public Long call() {
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
         try {
             String line;
             while (true){
-                line = blockingQueue.peek();
-                if (line != null && line.equals(TERMINATING_ROW)){
-                    System.out.println(Thread.currentThread().getName() + ": found terminating row, shutting down");
-                    break;
-                } else {
-                    if (blockingQueue.isEmpty()){
-                        System.out.println(sdf.format(new Date()) + ": " + Thread.currentThread().getName() + ": Queue is empty, waiting");
+                synchronized (blockingQueue) {
+                    line = blockingQueue.peek();
+                    if (line != null && line.equals(TERMINATING_ROW)) {
+                        System.out.println(Thread.currentThread().getName() + ": found terminating row, shutting down");
+                        break;
+                    } else {
+                        line = blockingQueue.take();
+                        numberOfLinesProcessed++;
+                        calculateValue(line);
                     }
-                    line = blockingQueue.take();
-                    if (line != null && line.equals(TERMINATING_ROW)){
-                        System.out.println(sdf.format(new Date()) + ": " + Thread.currentThread().getName() + ": found terminating row");
-                    }
-                    numberOfLinesProcessed++;
-                    calculateValue(line);
                 }
             }
         } catch (InterruptedException e) {
             System.out.println(e.getMessage());
-            throw new RuntimeException(e);
+            return numberOfLinesProcessed;
         }
         System.out.println(Thread.currentThread().getName() + ": " + numberOfLinesProcessed + " lines processed");
         return numberOfLinesProcessed;

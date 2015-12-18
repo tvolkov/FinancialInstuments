@@ -12,6 +12,12 @@ import java.util.Map;
 
 public class App {
     public static void main( String[] args ) {
+        if (args.length == 0){
+            System.out.println("Please specify a path to input file");
+            System.exit(1);
+        }
+
+        String pathToFile = args[0];
 
         Map<String, MeanCalculator> meanCalculatorMap = Collections.unmodifiableMap(new HashMap<String, MeanCalculator>(){{
             put("INSTRUMENT1", new MeanCalculator());
@@ -29,8 +35,8 @@ public class App {
             }
         };
 
-        //todo use some DI framework to handle dependencies
-        new InstrumentMeanValuesCalculationEngine("src/test/resources/example_input.txt",
+        //todo maybe use some DI framework to handle dependencies
+        new InstrumentMeanValuesCalculationEngine(pathToFile,
             meanCalculatorMap, correctionProvider).calculateMetrics();
     }
 }

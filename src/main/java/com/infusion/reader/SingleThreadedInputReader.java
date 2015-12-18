@@ -31,6 +31,10 @@ public class SingleThreadedInputReader implements InputReader {
                 linesRead++;
             }
         }*/
+        if (Files.notExists(Paths.get(pathToFile))){
+            blockingQueue.add(TERMINATING_ROW);
+            return;
+        }
         try (FileInputStream fileInputStream = new FileInputStream(pathToFile);
              InputStreamReader inputStreamReader = new InputStreamReader(fileInputStream);
              BufferedReader bufferedReader = new BufferedReader(inputStreamReader)){
