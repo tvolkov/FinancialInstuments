@@ -7,31 +7,28 @@ import com.infusion.reader.SingleThreadedInputReader;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
+import java.util.concurrent.locks.*;
 
 public class InstrumentMeanValuesCalculationEngine implements CalculationEngine {
 
     private final InputReader inputReader;
-    private final BlockingQueue<String> blockingQueue = new ArrayBlockingQueue<>(DEFAULT_QUEUE_CAPACITY);
+    private final BlockingQueue<String> queue = new ArrayBlockingQueue<>(DEFAULT_QUEUE_CAPACITY);
     private final Map<String, MeanCalculator> meanCalculatorMap;
     private final CorrectionProvider correctionProvider;
     private final Set<Future<Long>> linesProcessed = new HashSet<>();
+    private final Lock lock = new ReentrantLock();
+    private final CountDownLatch countDownLatch = new CountDownLatch(DEFAULT_THREAD_POOL_SIZE);
 
     private long totalExecutionTime;
     private long numberOfLinesProcessed;
 
-    private static final int DEFAULT_QUEUE_CAPACITY = 100000;
-    private static final int DEFAULT_THREAD_POOL_SIZE = 2;
+    private static final int DEFAULT_QUEUE_CAPACITY = 500000;
+    private static final int DEFAULT_THREAD_POOL_SIZE = 50;
 
     public InstrumentMeanValuesCalculationEngine(String pathToFile, Map<String, MeanCalculator> meanCalculatorMap,
                                                  CorrectionProvider correctionProvider){
-        this.inputReader = new SingleThreadedInputReader(pathToFile, blockingQueue);
+        this.inputReader = new SingleThreadedInputReader(pathToFile, queue, lock, countDownLatch);
         this.meanCalculatorMap = meanCalculatorMap;
         this.correctionProvider = correctionProvider;
     }
@@ -46,8 +43,8 @@ public class InstrumentMeanValuesCalculationEngine implements CalculationEngine 
         ExecutorService calculators = Executors.newFixedThreadPool(DEFAULT_THREAD_POOL_SIZE);
         for (int i = 0; i < DEFAULT_THREAD_POOL_SIZE; i++){
             System.out.println("Starting new calculator thread");
-            linesProcessed.add(calculators.submit(new CalculationWorker(blockingQueue, meanCalculatorMap,
-                    correctionProvider)));
+            linesProcessed.add(calculators.submit(new CalculationWorker(queue, meanCalculatorMap,
+                correctionProvider, lock, countDownLatch)));
         }
         calculators.shutdown();
         try {

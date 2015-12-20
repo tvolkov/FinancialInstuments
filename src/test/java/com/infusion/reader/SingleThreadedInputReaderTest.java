@@ -10,6 +10,8 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.locks.Lock;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
@@ -21,10 +23,6 @@ import static org.mockito.Mockito.times;
 
 import static com.infusion.reader.SingleThreadedInputReader.TERMINATING_ROW;
 
-
-/**
- * Created by tvolkov on 12.12.15.
- */
 @RunWith(MockitoJUnitRunner.class)
 public class SingleThreadedInputReaderTest {
 
@@ -48,7 +46,10 @@ public class SingleThreadedInputReaderTest {
     private BlockingQueue<String> blockingQueue;
 
     @Mock
-    private LineParser lineParser;
+    private Lock lock;
+
+    @Mock
+    private CountDownLatch countDownLatch;
 
     @Before
     public void setup(){
@@ -58,21 +59,7 @@ public class SingleThreadedInputReaderTest {
     @Test
     public void shouldTerminateIfInputDataNotFoundOrEOFReached(){
         //given
-        singleThreadedInputReader = new SingleThreadedInputReader("src/test/resources/non-existing-file.txt", blockingQueue);
-
-        //when
-        singleThreadedInputReader.processInputData();
-
-        //then
-        verify(blockingQueue, times(1)).add(argThat(new EqualityMatcher<>(TERMINATING_ROW)));
-        verifyNoMoreInteractions(blockingQueue);
-    }
-
-    @Test
-    public void shouldSkipTheLineIfItCantBeParsedAndPutNothingToQueue(){
-        //given
-        singleThreadedInputReader = new SingleThreadedInputReader("src/test/resources/incorrect_input_.txt", blockingQueue);
-        when(lineParser.parseLine(anyString())).thenReturn(null);
+        singleThreadedInputReader = new SingleThreadedInputReader("src/test/resources/non-existing-file.txt", blockingQueue, lock, countDownLatch);
 
         //when
         singleThreadedInputReader.processInputData();
@@ -85,8 +72,7 @@ public class SingleThreadedInputReaderTest {
     @Test
     public void shouldPutTheRowIntoQueueIfTheLineIsValid(){
         //given
-        singleThreadedInputReader = new SingleThreadedInputReader("src/test/resources/example_input_short.txt", blockingQueue);
-        when(lineParser.parseLine(anyString())).thenReturn(new Row("", "", 0.0));
+        singleThreadedInputReader = new SingleThreadedInputReader("src/test/resources/example_input_short.txt", blockingQueue, lock, countDownLatch);
 
         //when
         singleThreadedInputReader.processInputData();

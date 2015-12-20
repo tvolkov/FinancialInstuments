@@ -1,5 +1,6 @@
 package com.infusion.reader;
 
+import com.sun.org.apache.xml.internal.utils.ThreadControllerWrapper;
 import com.sun.org.apache.xpath.internal.SourceTree;
 
 import java.io.BufferedReader;
@@ -9,45 +10,54 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.*;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReadWriteLock;
 
 public class SingleThreadedInputReader implements InputReader {
 
-    private BlockingQueue<String> blockingQueue;
-    private String pathToFile;
+    private final BlockingQueue<String> queue;
+    private final String pathToFile;
     private long linesRead;
+    private final Lock lock;
+    private final CountDownLatch countDownLatch;
 
     public static final String TERMINATING_ROW = "####END_OF_DATA####";
 
-    public SingleThreadedInputReader(String pathToFile, BlockingQueue<String> blockingQueue){
+    public SingleThreadedInputReader(String pathToFile, BlockingQueue<String> queue, Lock lock, CountDownLatch countDownLatch){
         this.pathToFile = pathToFile;
-        this.blockingQueue = blockingQueue;
+        this.queue = queue;
+        this.lock = lock;
+          this.countDownLatch = countDownLatch;
     }
     //todo if the large file doesn't have crlf's, then it will lead to oom exception
     public void processInputData() {
-        /*try (BufferedReader br = Files.newBufferedReader(Paths.get(pathToFile), StandardCharsets.UTF_8)) {
-            for (String line; (line = br.readLine()) != null;) {
-                blockingQueue.add(line);
-                linesRead++;
-            }
-        }*/
         if (Files.notExists(Paths.get(pathToFile))){
-            blockingQueue.add(TERMINATING_ROW);
+            System.out.println(Thread.currentThread().getName() + ": file does not exist, adding termination");
+            queue.add(TERMINATING_ROW);
             return;
         }
         try (FileInputStream fileInputStream = new FileInputStream(pathToFile);
              InputStreamReader inputStreamReader = new InputStreamReader(fileInputStream);
              BufferedReader bufferedReader = new BufferedReader(inputStreamReader)){
             for (String line; (line = bufferedReader.readLine()) != null;){
-                blockingQueue.add(line);
+                queue.add(line);
                 linesRead++;
             }
         } catch (IOException e) {
             //todo throw more concrete exception here
             e.printStackTrace();
         } finally {
-            System.out.println("Finished reading input file. Read " + linesRead + " lines");
-            blockingQueue.add(TERMINATING_ROW);
+            System.out.println(Thread.currentThread().getName() + ": Finished reading input file. Read " + linesRead + " lines. adding terminator");
+            try {
+                countDownLatch.await();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+                return;
+            }
+            queue.add(TERMINATING_ROW);
+            System.out.println(Thread.currentThread().getName() + ": EOF reached, exiting");
         }
     }
 
@@ -55,5 +65,6 @@ public class SingleThreadedInputReader implements InputReader {
     public void run() {
         System.out.println("Starting reader thread");
         processInputData();
+        System.out.println(Thread.currentThread().getName() + ": exiting reader thread");
     }
 }
