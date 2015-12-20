@@ -2,9 +2,6 @@ package com.infusion.calculation.parser;
 
 import com.infusion.calculation.Row;
 
-/**
- * Created by tvolkov on 12/14/15.
- */
 public class InstrumentLineParser implements LineParser {
 
     private static final String SEPARATOR = ",";
@@ -12,18 +9,20 @@ public class InstrumentLineParser implements LineParser {
     @Override
     public Row parseLine(String line) {
         if (line == null){
-            return null;
+            fail("Line is null");
         }
 
         if (line.isEmpty()){
-            return null;
+            fail("Line is empty");
         }
         String[] tokens = line.split(SEPARATOR);
         if (tokens.length != 3){
-            System.out.println("InstrumentLineParser - forbidden line: " + line);
-            return null;
+            fail("Incorrect format of the incoming line");
         }
-        Row row = new Row(tokens[0], tokens[1], Double.parseDouble(tokens[2]));
-        return row;
+        return new Row(tokens[0], tokens[1], Double.parseDouble(tokens[2]));
+    }
+
+    private void fail(String message){
+        throw new IllegalArgumentException(message);
     }
 }

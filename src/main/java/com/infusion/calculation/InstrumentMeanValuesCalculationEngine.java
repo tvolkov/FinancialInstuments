@@ -1,7 +1,6 @@
 package com.infusion.calculation;
 
 import com.infusion.correction.CorrectionProvider;
-import com.infusion.reader.InputReader;
 import com.infusion.reader.SingleThreadedInputReader;
 
 import java.util.HashSet;
@@ -12,23 +11,23 @@ import java.util.concurrent.locks.*;
 
 public class InstrumentMeanValuesCalculationEngine implements CalculationEngine {
 
-    private final InputReader inputReader;
     private final BlockingQueue<String> queue = new ArrayBlockingQueue<>(DEFAULT_QUEUE_CAPACITY);
     private final Map<String, MeanCalculator> meanCalculatorMap;
     private final CorrectionProvider correctionProvider;
     private final Set<Future<Long>> linesProcessed = new HashSet<>();
     private final Lock lock = new ReentrantLock();
-    private final CountDownLatch countDownLatch = new CountDownLatch(DEFAULT_THREAD_POOL_SIZE);
+    private final Condition notEmpty = lock.newCondition();
+    private final String pathToFile;
 
     private long totalExecutionTime;
     private long numberOfLinesProcessed;
 
-    private static final int DEFAULT_QUEUE_CAPACITY = 500000;
-    private static final int DEFAULT_THREAD_POOL_SIZE = 50;
+    private static final int DEFAULT_QUEUE_CAPACITY = 5000000;
+    private static final int DEFAULT_THREAD_POOL_SIZE = 5;
 
     public InstrumentMeanValuesCalculationEngine(String pathToFile, Map<String, MeanCalculator> meanCalculatorMap,
                                                  CorrectionProvider correctionProvider){
-        this.inputReader = new SingleThreadedInputReader(pathToFile, queue, lock, countDownLatch);
+        this.pathToFile = pathToFile;
         this.meanCalculatorMap = meanCalculatorMap;
         this.correctionProvider = correctionProvider;
     }
@@ -37,16 +36,18 @@ public class InstrumentMeanValuesCalculationEngine implements CalculationEngine 
     public void calculateMetrics() {   
         long startTime = System.currentTimeMillis();
         ExecutorService reader = Executors.newSingleThreadExecutor();
-        reader.submit(inputReader);
+        System.out.println("Starting reader thread");
+        reader.submit(new SingleThreadedInputReader(pathToFile, queue, lock, notEmpty));
         reader.shutdown();
 
         ExecutorService calculators = Executors.newFixedThreadPool(DEFAULT_THREAD_POOL_SIZE);
         for (int i = 0; i < DEFAULT_THREAD_POOL_SIZE; i++){
             System.out.println("Starting new calculator thread");
-            linesProcessed.add(calculators.submit(new CalculationWorker(queue, meanCalculatorMap,
-                correctionProvider, lock, countDownLatch)));
+            linesProcessed.add(calculators.submit(new CalculationWorker(queue, new Calculator(meanCalculatorMap,
+                correctionProvider), lock, notEmpty)));
         }
         calculators.shutdown();
+
         try {
             calculators.awaitTermination(1, TimeUnit.MINUTES);
         } catch (InterruptedException e) {

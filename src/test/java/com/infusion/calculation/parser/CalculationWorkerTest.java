@@ -8,7 +8,9 @@ public class CalculationWorkerTest {
     private CalculationWorker calculationWorker;
 
     @Test
-    public void shouldReturnTheNumberOfParsedLinesIfParsedAllElementsFromQueue(){
+    public void shouldReturnTheNumberOfParsedLinesWhenFoundTerminatingRow(){
 
     }
+
+
 }

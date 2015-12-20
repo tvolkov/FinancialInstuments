@@ -10,27 +10,24 @@ import java.util.Map;
 import java.util.concurrent.*;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReadWriteLock;
 
 import static com.infusion.reader.SingleThreadedInputReader.TERMINATING_ROW;
 
 public class CalculationWorker implements Callable<Long> {
 
+    private final Calculator calculator;
     private final BlockingQueue<String> queue;
-    private final Map<String, MeanCalculator> meanCalculatorMap;
     private final LineParser lineParser = new InstrumentLineParser();
-    private final CorrectionProvider correctionProvider;
-    private long numberOfLinesProcessed;
     private final Lock lock;
-    private final CountDownLatch countDownLatch;
+    private final Condition notEmpty;
 
-    public CalculationWorker(BlockingQueue<String> queue, Map<String, MeanCalculator> meanCalculatorMap,
-                             CorrectionProvider correctionProvider, Lock lock, CountDownLatch countDownLatch){
+    private long numberOfLinesProcessed;
+
+    public CalculationWorker(BlockingQueue<String> queue, Calculator calculator, Lock lock, Condition notEmpty){
         this.queue = queue;
-        this.meanCalculatorMap = meanCalculatorMap;
-        this.correctionProvider = correctionProvider;
+        this.calculator = calculator;
         this.lock = lock;
-        this.countDownLatch = countDownLatch;
+        this.notEmpty = notEmpty;
     }
 
     @Override
@@ -40,9 +37,17 @@ public class CalculationWorker implements Callable<Long> {
         while (true){
             if(lock.tryLock()) {
                 try {
+                    /*
+                     * we need to check if queue is empty since reader thread should wait for all the calculatorworkers before sending TERMINATING_ROW.
+                     * Otherwise some threads might wait forever to take an element from queue
+                     */
                     while (queue.isEmpty()) {
-                        System.out.println(sdf.format(new Date()) + ": " + Thread.currentThread().getName() + ": queue is empty, waiting");
-                        countDownLatch.countDown();
+                        try {
+                            notEmpty.await();
+                        } catch (InterruptedException e) {
+                            return numberOfLinesProcessed;
+                        }
+                        System.out.println(sdf.format(new Date()) + ": " + Thread.currentThread().getName() + ": queue is empty, waiting: "/* + countDownLatch.getCount()*/ );
                     }
                     line = queue.peek();
                     if (line != null && line.equals(TERMINATING_ROW)) {
@@ -63,14 +68,6 @@ public class CalculationWorker implements Callable<Long> {
     }
 
     private void calculateValue(String line){
-        Row row = lineParser.parseLine(line);
-        if (row != null){
-            if (meanCalculatorMap.containsKey(row.getIntrumentName())){
-                meanCalculatorMap.get(row.getIntrumentName()).increment(row.getDate(),
-                        row.getPrice() * correctionProvider.getCorrectionForInstrument(row.getIntrumentName()));
-            }
-        } else {
-            throw new RuntimeException("Row is null");
-        }
+        calculator.calculate(lineParser.parseLine(line));
     }
 }

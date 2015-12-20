@@ -1,19 +1,14 @@
 package com.infusion.reader;
 
-import com.sun.org.apache.xml.internal.utils.ThreadControllerWrapper;
-import com.sun.org.apache.xpath.internal.SourceTree;
-
 import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.concurrent.*;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReadWriteLock;
 
 public class SingleThreadedInputReader implements InputReader {
 
@@ -21,15 +16,15 @@ public class SingleThreadedInputReader implements InputReader {
     private final String pathToFile;
     private long linesRead;
     private final Lock lock;
-    private final CountDownLatch countDownLatch;
+    private final Condition notEmpty;
 
     public static final String TERMINATING_ROW = "####END_OF_DATA####";
 
-    public SingleThreadedInputReader(String pathToFile, BlockingQueue<String> queue, Lock lock, CountDownLatch countDownLatch){
+    public SingleThreadedInputReader(String pathToFile, BlockingQueue<String> queue, Lock lock, Condition notEmpty){
         this.pathToFile = pathToFile;
         this.queue = queue;
         this.lock = lock;
-          this.countDownLatch = countDownLatch;
+        this.notEmpty = notEmpty;
     }
     //todo if the large file doesn't have crlf's, then it will lead to oom exception
     public void processInputData() {
@@ -50,20 +45,20 @@ public class SingleThreadedInputReader implements InputReader {
             e.printStackTrace();
         } finally {
             System.out.println(Thread.currentThread().getName() + ": Finished reading input file. Read " + linesRead + " lines. adding terminator");
+            lock.lock();
             try {
-                countDownLatch.await();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-                return;
+                queue.add(TERMINATING_ROW);
+                notEmpty.signalAll();
+            } finally {
+                lock.unlock();
             }
-            queue.add(TERMINATING_ROW);
+
             System.out.println(Thread.currentThread().getName() + ": EOF reached, exiting");
         }
     }
 
     @Override
     public void run() {
-        System.out.println("Starting reader thread");
         processInputData();
         System.out.println(Thread.currentThread().getName() + ": exiting reader thread");
     }

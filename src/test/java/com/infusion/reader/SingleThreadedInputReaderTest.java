@@ -11,6 +11,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 
 import static org.mockito.Matchers.any;
@@ -49,7 +50,7 @@ public class SingleThreadedInputReaderTest {
     private Lock lock;
 
     @Mock
-    private CountDownLatch countDownLatch;
+    private Condition notEmpty;
 
     @Before
     public void setup(){
@@ -59,7 +60,7 @@ public class SingleThreadedInputReaderTest {
     @Test
     public void shouldTerminateIfInputDataNotFoundOrEOFReached(){
         //given
-        singleThreadedInputReader = new SingleThreadedInputReader("src/test/resources/non-existing-file.txt", blockingQueue, lock, countDownLatch);
+        singleThreadedInputReader = new SingleThreadedInputReader("src/test/resources/non-existing-file.txt", blockingQueue, lock, notEmpty);
 
         //when
         singleThreadedInputReader.processInputData();
@@ -72,7 +73,7 @@ public class SingleThreadedInputReaderTest {
     @Test
     public void shouldPutTheRowIntoQueueIfTheLineIsValid(){
         //given
-        singleThreadedInputReader = new SingleThreadedInputReader("src/test/resources/example_input_short.txt", blockingQueue, lock, countDownLatch);
+        singleThreadedInputReader = new SingleThreadedInputReader("src/test/resources/example_input_short.txt", blockingQueue, lock, notEmpty);
 
         //when
         singleThreadedInputReader.processInputData();

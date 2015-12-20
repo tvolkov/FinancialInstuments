@@ -6,14 +6,11 @@ import static junit.framework.TestCase.assertNull;
 import static org.junit.Assert.assertEquals;
 import org.junit.Test;
 
-/**
- * Created by tvolkov on 12/14/15.
- */
 public class InstrumentLineParserTest {
 
     private InstrumentLineParser instrumentLineParser = new InstrumentLineParser();
 
-    @Test
+    @Test(expected = IllegalArgumentException.class)
     public void shouldReturnNullIfLineCanNotBeParsed(){
         //given
         String line = "fsgsfgb";
@@ -35,32 +32,26 @@ public class InstrumentLineParserTest {
 
         //then
         assertNotNull(row);
-        assertEquals("INSTRUMENT1", row.getIntrumentName());
+        assertEquals("INSTRUMENT1", row.getInstrumentName());
         assertEquals("01-Jan-1996", row.getDate());
         assertEquals(2.4655d, row.getPrice(), 0.0001);
     }
 
-    @Test
+    @Test(expected = IllegalArgumentException.class)
     public void shouldReturnNullIfLineIsEmpty(){
         //given
         String line = "";
 
         //when
         Row row = instrumentLineParser.parseLine(line);
-
-        //then
-        assertNull(row);
     }
 
-    @Test
+    @Test(expected = IllegalArgumentException.class)
     public void shouldReturnNullIfLineIsNull(){
         //given
         String line = null;
 
         //when
         Row row = instrumentLineParser.parseLine(line);
-
-        //then
-        assertNull(row);
     }
 }
