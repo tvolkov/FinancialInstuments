@@ -6,8 +6,11 @@ import com.infusion.correction.CorrectionProvider;
 import com.infusion.calculation.parser.InstrumentLineParser;
 import com.infusion.calculation.parser.LineParser;
 
+import java.lang.management.GarbageCollectorMXBean;
+import java.lang.management.ManagementFactory;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class App {
