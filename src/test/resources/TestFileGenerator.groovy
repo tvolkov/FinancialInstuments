@@ -23,7 +23,7 @@ def getInstrumentId(){
 }
 
 String getDate(){
-    def maxMonth = 12
+    def maxMonth = 11
     "${ThreadLocalRandom.current().nextInt(28)}-${getMonthName(ThreadLocalRandom.current().nextInt(maxMonth))}-${getRandomYear()}"
 }
 

@@ -8,7 +8,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 
 //todo make it a singleton
-public class BoneCPConnectionProvider implements DBConnectionProvider {
+class BoneCPConnectionProvider implements DBConnectionProvider {
 
     private BoneCP connectionPool;
 

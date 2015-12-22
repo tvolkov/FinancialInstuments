@@ -7,6 +7,26 @@
     <version>1.0-SNAPSHOT</version>
     <name>FinancialInstruments</name>
     <url>http://maven.apache.org</url>
+    <profiles>
+        <profile>
+            <id>largeFile</id>
+            <properties>
+                <input.type>LargeFile</input.type>
+            </properties>
+        </profile>
+        <profile>
+            <id>regularFile</id>
+            <properties>
+                <input.type>RegularFile</input.type>
+            </properties>
+        </profile>
+        <profile>
+            <id>emptyFile</id>
+            <properties>
+                <input.type>EmptyFile</input.type>
+            </properties>
+        </profile>
+    </profiles>
     <build>
         <plugins>
             <plugin>
@@ -38,6 +58,60 @@
                     <target>1.7</target>
                 </configuration>
             </plugin>
+            <plugin>
+                <groupId>com.btmatthews.maven.plugins.inmemdb</groupId>
+                <artifactId>inmemdb-maven-plugin</artifactId>
+                <version>1.4.3</version>
+                <configuration>
+                    <monitorPort>11527</monitorPort>
+                    <monitorKey>inmemdb</monitorKey>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>run</id>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                        <phase>pre-integration-test</phase>
+                        <configuration>
+                            <daemon>true</daemon>
+                            <type>h2</type>
+                            <database>instruments</database>
+                            <username>sa</username>
+                            <password></password>
+                            <sources>
+                                <script><sourceFile>src/test/resources/create_database.sql</sourceFile></script>
+                            </sources>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>stop</id>
+                        <goals>
+                            <goal>stop</goal>
+                        </goals>
+                        <phase>post-integration-test</phase>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <version>2.19</version>
+                <executions>
+                    <execution>
+                        <id>integration-tests</id>
+                        <goals>
+                            <goal>integration-test</goal>
+                            <goal>verify</goal>
+                        </goals>
+                        <configuration>
+                            <includes>
+                                <include>**/FinancialInstruments${input.type}IT.java</include>
+                            </includes>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
     <dependencies>
@@ -57,7 +131,7 @@
             <version>0.8.0.RELEASE</version>
         </dependency>
 
-
+        <!--TEST-->
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>

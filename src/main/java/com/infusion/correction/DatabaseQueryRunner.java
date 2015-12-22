@@ -1,5 +1,5 @@
 package com.infusion.correction;
 
-public interface DatabaseQueryRunner {
+interface DatabaseQueryRunner {
     String executeQuery(String query);
 }

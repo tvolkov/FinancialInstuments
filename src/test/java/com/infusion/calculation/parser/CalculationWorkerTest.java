@@ -1,7 +1,7 @@
 package com.infusion.calculation.parser;
 
 import com.infusion.calculation.CalculationWorker;
-import org.testng.annotations.Test;
+import org.junit.Test;
 
 public class CalculationWorkerTest {
 

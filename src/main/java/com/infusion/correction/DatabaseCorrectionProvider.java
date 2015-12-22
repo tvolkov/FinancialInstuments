@@ -4,11 +4,15 @@ import java.util.Map;
 
 public class DatabaseCorrectionProvider implements CorrectionProvider {
 
-    private Map<String, String> correctionCache;
+    private Map<String, Double> correctionCache;
+    private DBConnectionProvider dbConnectionProvider;
 
+    public DatabaseCorrectionProvider(){
+        dbConnectionProvider.getConnection().createStatement()
+    }
 
     @Override
     public double getCorrectionForInstrument(String instrument) {
-        return 0;
+        return correctionCache.get(instrument);
     }
 }
