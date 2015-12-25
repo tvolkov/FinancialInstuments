@@ -1,5 +1,8 @@
 package com.infusion.correction;
 
-interface DatabaseQueryRunner {
-    String executeQuery(String query);
+import java.sql.ResultSet;
+
+public interface DatabaseQueryRunner {
+    ResultSet executeQuery(String query);
+    boolean execute(String sql);
 }

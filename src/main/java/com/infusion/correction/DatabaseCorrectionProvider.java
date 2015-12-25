@@ -1,18 +1,20 @@
 package com.infusion.correction;
 
+import java.sql.SQLException;
 import java.util.Map;
 
 public class DatabaseCorrectionProvider implements CorrectionProvider {
+    private DatabaseQueryRunner databaseQueryRunner;
 
-    private Map<String, Double> correctionCache;
-    private DBConnectionProvider dbConnectionProvider;
-
-    public DatabaseCorrectionProvider(){
-        dbConnectionProvider.getConnection().createStatement()
+    public DatabaseCorrectionProvider(DatabaseQueryRunner databaseQueryRunner) {
+        this.databaseQueryRunner = databaseQueryRunner;
     }
 
     @Override
     public double getCorrectionForInstrument(String instrument) {
-        return correctionCache.get(instrument);
+        System.out.println("getting correction for instrument " + instrument);
+//        return databaseQueryRunner.executeQuery("");
+        return 1d;
     }
+
 }
