@@ -13,6 +13,31 @@
             <properties>
                 <input.type>LargeFile</input.type>
             </properties>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.codehaus.gmaven</groupId>
+                        <artifactId>gmaven-plugin</artifactId>
+                        <configuration>
+                            <source>2.0</source>
+                            <providerSelection>2.0</providerSelection>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <id>generate test</id>
+                                <goals>
+                                    <goal>execute</goal>
+                                </goals>
+                                <phase>generate-resources</phase>
+                                <!-- TODO need to run this script on the option passed to mvn -->
+                                <configuration>
+                                    <source>${basedir}/src/test/resources/TestFileGenerator.groovy</source>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
         </profile>
         <profile>
             <id>regularFile</id>
@@ -30,27 +55,6 @@
     <build>
         <plugins>
             <plugin>
-                <groupId>org.codehaus.gmaven</groupId>
-                <artifactId>gmaven-plugin</artifactId>
-                <configuration>
-                    <source>2.0</source>
-                    <providerSelection>2.0</providerSelection>
-                </configuration>
-                <executions>
-                    <execution>
-                        <id>generate test</id>
-                        <goals>
-                            <goal>execute</goal>
-                        </goals>
-                        <phase>generate-resources</phase>
-                        <!-- TODO need to run this script on the option passed to mvn -->
-                        <configuration>
-                            <source>${basedir}/src/test/resources/TestFileGenerator.groovy</source>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <configuration>
@@ -58,12 +62,12 @@
                     <target>1.7</target>
                 </configuration>
             </plugin>
-            <plugin>
+            <!--<plugin>
                 <groupId>com.btmatthews.maven.plugins.inmemdb</groupId>
                 <artifactId>inmemdb-maven-plugin</artifactId>
                 <version>1.4.3</version>
                 <configuration>
-                    <!--	jdbc:h2:mem:<databaseName> -->
+                    &lt;!&ndash;	jdbc:h2:mem:<databaseName> &ndash;&gt;
                     <monitorPort>11527</monitorPort>
                     <monitorKey>inmemdb</monitorKey>
                 </configuration>
@@ -95,47 +99,66 @@
                         <phase>post-integration-test</phase>
                     </execution>
                 </executions>
+            </plugin>-->
+            <plugin>
+                <groupId>com.edugility</groupId>
+                <artifactId>h2-maven-plugin</artifactId>
+                <version>1.0</version>
+                <configuration>
+                    <port>11527</port>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>Spawn a new H2 TCP server</id>
+                        <phase>pre-integration-test</phase>
+                        <goals>
+                            <goal>spawn</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>Stop a spawned H2 TCP server</id>
+                        <goals>
+                            <goal>stop</goal>
+                        </goals>
+                        <phase>post-integration-test</phase>
+                    </execution>
+                </executions>
             </plugin>
-            <!--<plugin>-->
-                <!--<groupId>org.codehaus.mojo</groupId>-->
-                <!--<artifactId>sql-maven-plugin</artifactId>-->
-                <!--<version>1.5</version>-->
-                <!--<dependencies>-->
-                    <!--<dependency>-->
-                        <!--<groupId>com.h2database</groupId>-->
-                        <!--<artifactId>h2</artifactId>-->
-                        <!--<version>1.4.190</version>-->
-                    <!--</dependency>-->
-                <!--</dependencies>-->
-                <!--<configuration>-->
-                    <!--<driver>org.h2.Driver</driver>-->
-                    <!--<url>jdbc:h2:mem:instruments</url>-->
-                    <!--<username>sa</username>-->
-                    <!--<password></password>-->
-                <!--</configuration>-->
-
-                <!--<executions>-->
-                    <!--<execution>-->
-                        <!--<id>create table</id>-->
-                        <!--<phase>pre-integration-test</phase>-->
-                        <!--<goals>-->
-                            <!--<goal>execute</goal>-->
-                        <!--</goals>-->
-                        <!--<configuration>-->
-                            <!--&lt;!&ndash; need another database to drop the targeted one &ndash;&gt;-->
-                            <!--<url>jdbc:h2:mem:instruments</url>-->
-                            <!--<autocommit>true</autocommit>-->
-                            <!--<sqlCommand>CREATE SCHEMA IF NOT EXISTS INSTRUMENTS;-->
-                                        <!--CREATE TABLE INSTRUMENT_PRICE_MODIFIER(ID INT PRIMARY KEY AUTO_INCREMENT NOT NULL,-->
-                                       <!--NAME CHAR NOT NULL,-->
-                                       <!--MULTIPLIER DOUBLE);-->
-                                       <!--INSERT INTO INSTRUMENT_PRICE_MODIFIER VALUES (1, 'INSTRUMENT1', 1);</sqlCommand>-->
-                            <!--&lt;!&ndash; ignore error when database is not avaiable &ndash;&gt;-->
-                            <!--<onError>continue</onError>-->
-                        <!--</configuration>-->
-                    <!--</execution>-->
-                <!--</executions>-->
-            <!--</plugin>-->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>sql-maven-plugin</artifactId>
+                <version>1.5</version>
+                <dependencies>
+                    <dependency>
+                        <groupId>com.h2database</groupId>
+                        <artifactId>h2</artifactId>
+                        <version>1.4.190</version>
+                    </dependency>
+                </dependencies>
+                <configuration>
+                    <driver>org.h2.Driver</driver>
+                    <url>jdbc:h2:mem:instruments</url>
+                    <username>sa</username>
+                    <password></password>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>create table</id>
+                        <phase>pre-integration-test</phase>
+                        <goals>
+                            <goal>execute</goal>
+                        </goals>
+                        <configuration>
+                            <url>jdbc:h2:tcp://localhost:11527/mem:instruments;DB_CLOSE_DELAY=-1</url>
+                            <autocommit>true</autocommit>
+                            <srcFiles>
+                                <srcFile>src/test/resources/create_database.sql</srcFile>
+                            </srcFiles>
+                            <onError>continue</onError>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-failsafe-plugin</artifactId>
