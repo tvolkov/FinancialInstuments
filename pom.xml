@@ -29,7 +29,6 @@
                                     <goal>execute</goal>
                                 </goals>
                                 <phase>generate-resources</phase>
-                                <!-- TODO need to run this script on the option passed to mvn -->
                                 <configuration>
                                     <source>${basedir}/src/test/resources/TestFileGenerator.groovy</source>
                                 </configuration>
@@ -62,44 +61,6 @@
                     <target>1.7</target>
                 </configuration>
             </plugin>
-            <!--<plugin>
-                <groupId>com.btmatthews.maven.plugins.inmemdb</groupId>
-                <artifactId>inmemdb-maven-plugin</artifactId>
-                <version>1.4.3</version>
-                <configuration>
-                    &lt;!&ndash;	jdbc:h2:mem:<databaseName> &ndash;&gt;
-                    <monitorPort>11527</monitorPort>
-                    <monitorKey>inmemdb</monitorKey>
-                </configuration>
-                <executions>
-                    <execution>
-                        <id>run</id>
-                        <goals>
-                            <goal>run</goal>
-                        </goals>
-                        <phase>pre-integration-test</phase>
-                        <configuration>
-                            <daemon>true</daemon>
-                            <type>h2</type>
-                            <database>instruments</database>
-                            <username>sa</username>
-                            <password>sa</password>
-                            <sources>
-                                <script>
-                                    <sourceFile>src/test/resources/create_database.sql</sourceFile>
-                                </script>
-                            </sources>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>stop</id>
-                        <goals>
-                            <goal>stop</goal>
-                        </goals>
-                        <phase>post-integration-test</phase>
-                    </execution>
-                </executions>
-            </plugin>-->
             <plugin>
                 <groupId>com.edugility</groupId>
                 <artifactId>h2-maven-plugin</artifactId>
