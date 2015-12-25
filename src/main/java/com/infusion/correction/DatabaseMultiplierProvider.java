@@ -1,19 +1,16 @@
 package com.infusion.correction;
 
-import java.sql.SQLException;
-import java.util.Map;
-
-public class DatabaseCorrectionProvider implements CorrectionProvider {
+public class DatabaseMultiplierProvider implements MultiplierProvider {
 
 
     private DatabaseQueryRunner databaseQueryRunner;
 
-    public DatabaseCorrectionProvider(DatabaseQueryRunner databaseQueryRunner) {
+    public DatabaseMultiplierProvider(DatabaseQueryRunner databaseQueryRunner) {
         this.databaseQueryRunner = databaseQueryRunner;
     }
 
     @Override
-    public double getCorrectionForInstrument(String instrument) {
+    public double getMultiplierForInstrument(String instrument) {
         System.out.println("getting correction for instrument " + instrument);
         return databaseQueryRunner.getMultiplierForInstument(instrument);
     }

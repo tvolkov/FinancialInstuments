@@ -1,6 +1,6 @@
 package com.infusion.calculation;
 
-import com.infusion.correction.CorrectionProvider;
+import com.infusion.correction.MultiplierProvider;
 import com.infusion.reader.SingleThreadedInputReader;
 
 import java.util.HashSet;
@@ -13,7 +13,7 @@ public class InstrumentMeanValuesCalculationEngine implements CalculationEngine 
 
     private final BlockingQueue<String> queue = new ArrayBlockingQueue<>(DEFAULT_QUEUE_CAPACITY);
     private final Map<String, MeanCalculator> meanCalculatorMap;
-    private final CorrectionProvider correctionProvider;
+    private final MultiplierProvider multiplierProvider;
     private final Set<Future<Long>> linesProcessed = new HashSet<>();
     private final Lock lock = new ReentrantLock();
     private final Condition notEmpty = lock.newCondition();
@@ -26,10 +26,10 @@ public class InstrumentMeanValuesCalculationEngine implements CalculationEngine 
     private static final int DEFAULT_THREAD_POOL_SIZE = 5;
 
     public InstrumentMeanValuesCalculationEngine(String pathToFile, Map<String, MeanCalculator> meanCalculatorMap,
-                                                 CorrectionProvider correctionProvider){
+                                                 MultiplierProvider multiplierProvider){
         this.pathToFile = pathToFile;
         this.meanCalculatorMap = meanCalculatorMap;
-        this.correctionProvider = correctionProvider;
+        this.multiplierProvider = multiplierProvider;
     }
 
     @Override
@@ -44,7 +44,7 @@ public class InstrumentMeanValuesCalculationEngine implements CalculationEngine 
         for (int i = 0; i < DEFAULT_THREAD_POOL_SIZE; i++){
             System.out.println("Starting new calculator thread");
             linesProcessed.add(calculators.submit(new CalculationWorker(queue, new Calculator(meanCalculatorMap,
-                correctionProvider), lock, notEmpty)));
+                    multiplierProvider), lock, notEmpty)));
         }
         calculators.shutdown();
 

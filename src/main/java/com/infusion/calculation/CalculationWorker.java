@@ -2,11 +2,9 @@ package com.infusion.calculation;
 
 import com.infusion.calculation.parser.InstrumentLineParser;
 import com.infusion.calculation.parser.LineParser;
-import com.infusion.correction.CorrectionProvider;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.Map;
 import java.util.concurrent.*;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
