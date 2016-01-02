@@ -2,27 +2,30 @@ package com.infusion.calculation;
 
 import org.apache.commons.math3.stat.descriptive.moment.Mean;
 
+import java.time.LocalDate;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class MeanCalculator {
 
     private final Mean mean;
-    //todo make it operate on dates instead of strings
-    private final String averagingPeriod;
+    private final LocalDate averagingPeriodStart;
+    private final LocalDate averagingPeriodEnd;
     private final Lock lock = new ReentrantLock();
 
     public MeanCalculator(){
         this.mean = new Mean();
-        this.averagingPeriod = "";
+        this.averagingPeriodStart = null;
+        this.averagingPeriodEnd = null;
     }
 
-    public MeanCalculator(String averagingPeriod){
-        this.mean = new Mean();
-        this.averagingPeriod = averagingPeriod;
+    public MeanCalculator(Mean mean, LocalDate averagingPeriodStart, LocalDate averagingPeriodEnd){
+        this.mean = mean;
+        this.averagingPeriodStart = averagingPeriodStart;
+        this.averagingPeriodEnd = averagingPeriodEnd;
     }
 
-    public void increment(String date, double value){
+    public void increment(LocalDate date, double value){
         if (isDateWithinAveragingPeriod(date)){
             lock.lock();
             try {
@@ -37,12 +40,11 @@ public class MeanCalculator {
         return mean.getResult();
     }
 
-    private boolean isDateWithinAveragingPeriod(String date){
-        if (averagingPeriod.isEmpty()){
+    private boolean isDateWithinAveragingPeriod(LocalDate date){
+        if (averagingPeriodStart == null && averagingPeriodEnd == null){
             return true;
         } else {
-            //TODO add comparison here
-            return true;
+            return !(date.isBefore(averagingPeriodStart) || date.isAfter(averagingPeriodEnd));
         }
     }
 }

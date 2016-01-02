@@ -1,5 +1,8 @@
 package com.infusion.reader;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -11,6 +14,8 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 
 public class SingleThreadedInputReader implements InputReader {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(SingleThreadedInputReader.class);
 
     private final BlockingQueue<String> queue;
     private final String pathToFile;
@@ -29,7 +34,7 @@ public class SingleThreadedInputReader implements InputReader {
     //todo if the large file doesn't have crlf's, then it will lead to oom exception
     public void processInputData() {
         if (Files.notExists(Paths.get(pathToFile))){
-            System.out.println(Thread.currentThread().getName() + ": file does not exist, adding termination");
+            LOGGER.debug("file does not exist, adding termination");
             queue.add(TERMINATING_ROW);
             return;
         }
@@ -44,7 +49,7 @@ public class SingleThreadedInputReader implements InputReader {
             //todo throw more concrete exception here
             e.printStackTrace();
         } finally {
-            System.out.println(Thread.currentThread().getName() + ": Finished reading input file. Read " + linesRead + " lines. adding terminator");
+            LOGGER.debug("Finished reading input file. Read " + linesRead + " lines. adding terminator");
             lock.lock();
             try {
                 queue.add(TERMINATING_ROW);
@@ -52,14 +57,13 @@ public class SingleThreadedInputReader implements InputReader {
             } finally {
                 lock.unlock();
             }
-
-            System.out.println(Thread.currentThread().getName() + ": EOF reached, exiting");
+            LOGGER.debug("EOF reached, exiting");
         }
     }
 
     @Override
     public void run() {
         processInputData();
-        System.out.println(Thread.currentThread().getName() + ": exiting reader thread");
+        LOGGER.debug("exiting reader thread");
     }
 }

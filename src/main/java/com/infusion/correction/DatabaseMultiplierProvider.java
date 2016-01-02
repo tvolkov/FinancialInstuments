@@ -11,8 +11,6 @@ public class DatabaseMultiplierProvider implements MultiplierProvider {
 
     @Override
     public double getMultiplierForInstrument(String instrument) {
-        System.out.println("getting correction for instrument " + instrument);
         return databaseQueryRunner.getMultiplierForInstument(instrument);
     }
-
 }

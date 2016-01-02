@@ -23,8 +23,9 @@ def getInstrumentId(){
 }
 
 String getDate(){
-    def maxMonth = 11
-    "${ThreadLocalRandom.current().nextInt(28)}-${getMonthName(ThreadLocalRandom.current().nextInt(maxMonth))}-${getRandomYear()}"
+    def day = ThreadLocalRandom.current().nextInt(1, 28)
+    String dayStr = day < 10 ? "0${day}" : day
+    "${dayStr}-${getMonthName(ThreadLocalRandom.current().nextInt(1, 12))}-${getRandomYear()}"
 }
 
 def getPrice(){

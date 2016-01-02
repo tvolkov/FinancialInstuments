@@ -2,9 +2,14 @@ package com.infusion.calculation.parser;
 
 import com.infusion.calculation.Row;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.Locale;
+
 public class InstrumentLineParser implements LineParser {
 
     private static final String SEPARATOR = ",";
+    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("dd-MMM-yyyy").withLocale(Locale.US);
 
     @Override
     public Row parseLine(String line) {
@@ -19,7 +24,10 @@ public class InstrumentLineParser implements LineParser {
         if (tokens.length != 3){
             fail("Incorrect format of the incoming line");
         }
-        return new Row(tokens[0], tokens[1], Double.parseDouble(tokens[2]));
+
+        return new Row(tokens[0],
+                LocalDate.parse(tokens[1], FORMATTER),
+                Double.parseDouble(tokens[2]));
     }
 
     private void fail(String message){

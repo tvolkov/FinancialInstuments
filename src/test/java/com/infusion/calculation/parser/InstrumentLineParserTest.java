@@ -6,6 +6,8 @@ import static junit.framework.TestCase.assertNull;
 import static org.junit.Assert.assertEquals;
 import org.junit.Test;
 
+import java.time.LocalDate;
+
 public class InstrumentLineParserTest {
 
     private InstrumentLineParser instrumentLineParser = new InstrumentLineParser();
@@ -33,7 +35,7 @@ public class InstrumentLineParserTest {
         //then
         assertNotNull(row);
         assertEquals("INSTRUMENT1", row.getInstrumentName());
-        assertEquals("01-Jan-1996", row.getDate());
+        assertEquals(LocalDate.of(1996, 1, 1), row.getDate());
         assertEquals(2.4655d, row.getPrice(), 0.0001);
     }
 
