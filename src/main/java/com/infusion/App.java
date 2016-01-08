@@ -1,17 +1,17 @@
 package com.infusion;
 
-import com.infusion.calculation.InstrumentMeanValuesCalculationEngine;
+import com.infusion.calculation.CalculationEngine;
 import org.springframework.context.support.GenericGroovyApplicationContext;
 
 import java.sql.SQLException;
 
 public class App {
     //this is done in order to pass the path to input file to spring
-    private static String PATH_TO_FILE = "/";
+    private static String PATH_TO_FILE = "src/test/resources/large_file.txt";
 
     public static void main( String[] args ) throws SQLException {
         GenericGroovyApplicationContext ctx = new GenericGroovyApplicationContext("classpath:beans.groovy");
-        InstrumentMeanValuesCalculationEngine calculationEngine = (InstrumentMeanValuesCalculationEngine) ctx.getBean("meanValuesCalculationEngine");
+        CalculationEngine calculationEngine = (CalculationEngine) ctx.getBean("meanValuesCalculationEngine");
         calculationEngine.calculateMetrics();
     }
 

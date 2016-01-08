@@ -21,13 +21,14 @@ beans {
     totalMeanCalculationStrategy(MeanCalculationStrategy)
     november2014MeanCalculationStrategy(MeanCalculationStrategy, LocalDate.of(2014, 11, 1), LocalDate.of(2014, 11, 30))
     year2014MeanCalculator(MeanCalculationStrategy, LocalDate.of(2014, 1, 1), LocalDate.of(2014, 12, 31))
+//    defaultSumCalculationStrategy(DefaultCalculationStrategy, 10)
 
     metricCalculators(MapFactoryBean) {
         sourceMap = [
                 "INSTRUMENT1": totalMeanCalculationStrategy,
                 "INSTRUMENT2": november2014MeanCalculationStrategy,
                 "INSTRUMENT3": year2014MeanCalculator,
-        ] as ConcurrentHashMap
+        ]
     }
 
     calculationStrategiesProvider(CalculationStrategyProvider, metricCalculators)

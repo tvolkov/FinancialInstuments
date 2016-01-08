@@ -5,15 +5,15 @@ import com.infusion.correction.MultiplierProvider;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
-import java.util.Map;
 
 public class Calculator {
-    private final Map<String, MeanCalculator> meanCalculatorMap;
+    private final CalculationStrategyProvider calculationStrategyProvider;
     private final MultiplierProvider multiplierProvider;
     private final InstrumentLineParser instrumentLineParser;
 
-    public Calculator(Map<String, MeanCalculator> meanCalculatorMap, MultiplierProvider multiplierProvider, InstrumentLineParser instrumentLineParser){
-        this.meanCalculatorMap = meanCalculatorMap;
+    public Calculator(CalculationStrategyProvider calculationStrategyProvider, MultiplierProvider multiplierProvider,
+                      InstrumentLineParser instrumentLineParser){
+        this.calculationStrategyProvider = calculationStrategyProvider;
         this.multiplierProvider = multiplierProvider;
         this.instrumentLineParser = instrumentLineParser;
     }
@@ -23,10 +23,13 @@ public class Calculator {
         if (!isBusinessDay(instrument.getDate())){
             return;
         }
-        if (meanCalculatorMap.containsKey(instrument.getInstrumentName())) {
-            meanCalculatorMap.get(instrument.getInstrumentName()).increment(instrument.getDate(),
-                    instrument.getPrice() * multiplierProvider.getMultiplierForInstrument(instrument.getInstrumentName()));
-        }
+        calculationStrategyProvider.getCalculationStrategy(instrument.getInstrumentName())
+                .calculateInstrumentMetric(instrument.getDate(),
+                        adjustInstrumentPrice(instrument.getInstrumentName(), instrument.getPrice()));
+    }
+
+    private double adjustInstrumentPrice(String instrumentName, double instrumentPrice){
+         return instrumentPrice * multiplierProvider.getMultiplierForInstrument(instrumentName);
     }
 
     private boolean isBusinessDay(LocalDate date) {

@@ -2,8 +2,8 @@ package com.infusion.calculation;
 
 import com.infusion.calculation.parser.InstrumentLineParser;
 import com.infusion.correction.MultiplierProvider;
+import com.infusion.output.ResultWriter;
 import com.infusion.reader.FileInputReader;
-import com.infusion.reader.InputReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -12,14 +12,10 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.*;
-import java.util.concurrent.locks.Condition;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
-public class InstrumentMeanValuesCalculationEngine implements CalculationEngine {
+public class InstrumentMetricsCalculationEngine implements CalculationEngine {
 
-    private final BlockingQueue<String> queue = new ArrayBlockingQueue<>(DEFAULT_QUEUE_CAPACITY);
-    private final Map<String, MeanCalculator> meanCalculatorMap;
+    private final CalculationStrategyProvider calculationStrategyProvider;
     private final MultiplierProvider multiplierProvider;
     private final Set<Future<Long>> linesProcessed = new HashSet<>();
     private final String pathToFile;
@@ -30,15 +26,14 @@ public class InstrumentMeanValuesCalculationEngine implements CalculationEngine 
 
     private static final int DEFAULT_QUEUE_CAPACITY = 5000000;
     private static final int DEFAULT_THREAD_POOL_SIZE = Runtime.getRuntime().availableProcessors();
+    private static final Logger LOGGER = LoggerFactory.getLogger(InstrumentMetricsCalculationEngine.class);
 
     public static final String TERMINATING_ROW = "####END_OF_DATA####";
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(InstrumentMeanValuesCalculationEngine.class);
-
-    public InstrumentMeanValuesCalculationEngine(String pathToFile, Map<String, MeanCalculator> meanCalculatorMap,
-                                                 MultiplierProvider multiplierProvider, ResultWriter resultWriter) {
+    public InstrumentMetricsCalculationEngine(String pathToFile, CalculationStrategyProvider calculationStrategyProvider,
+                                              MultiplierProvider multiplierProvider, ResultWriter resultWriter) {
         this.pathToFile = pathToFile;
-        this.meanCalculatorMap = meanCalculatorMap;
+        this.calculationStrategyProvider = calculationStrategyProvider;
         this.multiplierProvider = multiplierProvider;
         this.resultWriter = resultWriter;
     }
@@ -46,32 +41,59 @@ public class InstrumentMeanValuesCalculationEngine implements CalculationEngine 
     @Override
     public void calculateMetrics() {
         long startTime = System.currentTimeMillis();
+        Thread.UncaughtExceptionHandler uncaughtExceptionHandler = new Thread.UncaughtExceptionHandler() {
+            @Override
+            public void uncaughtException(Thread t, Throwable e) {
+                synchronized (this){
+                    LOGGER.error("uncaught exception in thread " + t.getName() + ": " + e.getMessage());
+                }
+            }
+        };
+        ThreadFactory threadFactory = new ThreadFactory() {
+            private int count = 0;
+            @Override
+            public Thread newThread(Runnable r) {
+                Thread thread = new Thread(r);
+                thread.setUncaughtExceptionHandler(uncaughtExceptionHandler);
+                thread.setName("CalculationWorker" + count++);
+                return thread;
+            }
+        };
 
+
+        BlockingQueue<String> queue = new ArrayBlockingQueue<>(DEFAULT_QUEUE_CAPACITY);
+
+        //start input reader thread
         CountDownLatch countDownLatch = new CountDownLatch(1);
         ExecutorService reader = Executors.newSingleThreadExecutor();
         LOGGER.info("Starting reader thread with file " + pathToFile);
         reader.submit(new FileInputReader(new File(pathToFile), queue, countDownLatch));
         reader.shutdown();
 
-        ExecutorService calculators = Executors.newFixedThreadPool(DEFAULT_THREAD_POOL_SIZE);
+        //start calculator threads
+
+        ExecutorService calculators = (ThreadPoolExecutor) Executors.newFixedThreadPool(DEFAULT_THREAD_POOL_SIZE, threadFactory);
         for (int i = 0; i < DEFAULT_THREAD_POOL_SIZE; i++) {
-            linesProcessed.add(calculators.submit(new CalculationWorker(queue, new Calculator(meanCalculatorMap,
+            linesProcessed.add(calculators.submit(new CalculationWorker(queue, new Calculator(calculationStrategyProvider,
                     multiplierProvider, new InstrumentLineParser()))));
         }
         calculators.shutdown();
 
+        //wait while reader is done
         try {
             countDownLatch.await();
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
 
+        //tell calculators to stop
         int count = 0;
         while (!calculators.isTerminated() && count++ < DEFAULT_THREAD_POOL_SIZE) {
             LOGGER.debug("putting terminating row into queue");
             queue.offer(TERMINATING_ROW);
         }
 
+        //get results
         LOGGER.info("getting results");
         for (Future<Long> future : linesProcessed) {
             try {
@@ -84,7 +106,7 @@ public class InstrumentMeanValuesCalculationEngine implements CalculationEngine 
         long endTime = System.currentTimeMillis();
 
         this.totalExecutionTime = endTime - startTime;
-        resultWriter.writeResults(meanCalculatorMap, numberOfLinesProcessed, totalExecutionTime);
+        resultWriter.writeResults(calculationStrategyProvider, numberOfLinesProcessed, totalExecutionTime);
         LOGGER.info("done");
     }
 }

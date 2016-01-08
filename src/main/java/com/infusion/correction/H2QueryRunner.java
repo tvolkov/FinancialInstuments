@@ -1,5 +1,7 @@
 package com.infusion.correction;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -24,7 +26,7 @@ public class H2QueryRunner implements DatabaseQueryRunner {
             if (resultSet.next()) {
                 return resultSet.getDouble(1);
             } else {
-                throw new RuntimeException("incorrect table state");
+                return 1d;
             }
         } catch (SQLException e) {
             e.printStackTrace();

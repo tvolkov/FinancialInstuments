@@ -10,7 +10,6 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import java.time.LocalDate;
-import java.util.Map;
 
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.*;
@@ -19,7 +18,7 @@ import static org.mockito.Mockito.*;
 public class CalculatorTest {
 
     @Mock
-    private Map<String, MeanCalculator> meanCalculatorMap;
+    private CalculationStrategyProvider calculationStrategyProvider;
 
     private MultiplierProvider multiplierProvider = new DummyMultiplierProvider();
 
@@ -27,7 +26,7 @@ public class CalculatorTest {
     private InstrumentLineParser instrumentLineParser;
 
     @Mock
-    private MeanCalculator meanCalculator;
+    private CalculationStrategy calculationStrategy;
 
     private Calculator calculator;
 
@@ -37,49 +36,32 @@ public class CalculatorTest {
 
     @Before
     public void setUp(){
-        this.calculator = new Calculator(meanCalculatorMap, multiplierProvider, instrumentLineParser);
-    }
-
-    @Test
-    public void shouldDoNothingIfMeanCalculatorMapDoesntHaveEntryForTheGivenInstrument(){
-        //given
-        when(meanCalculatorMap.containsKey(VALID_INSTRUMENT.getInstrumentName())).thenReturn(false);
-        when(instrumentLineParser.parseLine(anyString())).thenReturn(VALID_INSTRUMENT);
-
-        //when
-        calculator.calculate(anyString());
-
-        //then
-        verify(meanCalculatorMap, times(1)).containsKey(VALID_INSTRUMENT.getInstrumentName());
-        verifyNoMoreInteractions(meanCalculatorMap);
+        this.calculator = new Calculator(calculationStrategyProvider, multiplierProvider, instrumentLineParser);
     }
 
     @Test
     public void shouldCalculateMeanValueWhenThereIsAnEntryForTheGivenInstrument(){
         //given
-        when(meanCalculatorMap.containsKey(VALID_INSTRUMENT.getInstrumentName())).thenReturn(true);
-        when(meanCalculatorMap.get(VALID_INSTRUMENT.getInstrumentName())).thenReturn(meanCalculator);
+        when(calculationStrategyProvider.getCalculationStrategy(VALID_INSTRUMENT.getInstrumentName())).thenReturn(calculationStrategy);
         when(instrumentLineParser.parseLine(anyString())).thenReturn(VALID_INSTRUMENT);
 
         //when
         calculator.calculate(anyString());
 
         //then
-        verify(meanCalculatorMap, times(1)).containsKey(VALID_INSTRUMENT.getInstrumentName());
-        verify(meanCalculatorMap, times(1)).get(VALID_INSTRUMENT.getInstrumentName());
-        verify(meanCalculator, times(1)).increment(VALID_INSTRUMENT.getDate(), 1d);
+        verify(calculationStrategyProvider, times(1)).getCalculationStrategy(VALID_INSTRUMENT.getInstrumentName());
+        verify(calculationStrategy, times(1)).calculateInstrumentMetric(VALID_INSTRUMENT.getDate(), 1d);
     }
 
     @Test
     public void shouldSkipCalculationIfDateInRowIsNotABusinessDate(){
         //given
-        when(meanCalculatorMap.containsKey(INVALID_INSTRUMENT.getInstrumentName())).thenReturn(false);
         when(instrumentLineParser.parseLine(anyString())).thenReturn(INVALID_INSTRUMENT);
 
         //when
         calculator.calculate(anyString());
 
         //then
-        verifyZeroInteractions(meanCalculatorMap);
+        verifyZeroInteractions(calculationStrategyProvider);
     }
 }
