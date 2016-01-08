@@ -1,6 +1,6 @@
 package com.infusion.calculation.parser;
 
-import com.infusion.calculation.Row;
+import com.infusion.calculation.Instrument;
 import static junit.framework.Assert.assertNotNull;
 import static junit.framework.TestCase.assertNull;
 import static org.junit.Assert.assertEquals;
@@ -18,10 +18,10 @@ public class InstrumentLineParserTest {
         String line = "fsgsfgb";
 
         //when
-        Row row = instrumentLineParser.parseLine(line);
+        Instrument instrument = instrumentLineParser.parseLine(line);
 
         //then
-        assertNull(row);
+        assertNull(instrument);
     }
 
     @Test
@@ -30,13 +30,13 @@ public class InstrumentLineParserTest {
         String line = "INSTRUMENT1,01-Jan-1996,2.4655";
 
         //when
-        Row row = instrumentLineParser.parseLine(line);
+        Instrument instrument = instrumentLineParser.parseLine(line);
 
         //then
-        assertNotNull(row);
-        assertEquals("INSTRUMENT1", row.getInstrumentName());
-        assertEquals(LocalDate.of(1996, 1, 1), row.getDate());
-        assertEquals(2.4655d, row.getPrice(), 0.0001);
+        assertNotNull(instrument);
+        assertEquals("INSTRUMENT1", instrument.getInstrumentName());
+        assertEquals(LocalDate.of(1996, 1, 1), instrument.getDate());
+        assertEquals(2.4655d, instrument.getPrice(), 0.0001);
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -45,7 +45,7 @@ public class InstrumentLineParserTest {
         String line = "";
 
         //when
-        Row row = instrumentLineParser.parseLine(line);
+        Instrument instrument = instrumentLineParser.parseLine(line);
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -54,6 +54,6 @@ public class InstrumentLineParserTest {
         String line = null;
 
         //when
-        Row row = instrumentLineParser.parseLine(line);
+        Instrument instrument = instrumentLineParser.parseLine(line);
     }
 }

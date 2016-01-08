@@ -1,7 +1,7 @@
 package com.infusion;
 
 import com.infusion.calculation.InstrumentMeanValuesCalculationEngine;
-import com.infusion.calculation.Row;
+import com.infusion.calculation.Instrument;
 import com.infusion.reader.InputReader;
 import org.mockito.Mock;
 
@@ -18,6 +18,6 @@ public class InstrumentMetricCalculationEngineTest {
     private InputReader inputReader;
 
     @Mock
-    private BlockingQueue<Row> blockingQueue;
+    private BlockingQueue<Instrument> blockingQueue;
 
 }

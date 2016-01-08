@@ -2,12 +2,12 @@ package com.infusion.calculation;
 
 import java.time.LocalDate;
 
-public class Row {
+public class Instrument {
     private final String instrumentName;
     private final LocalDate date;
     private final double price;
 
-    public Row(String instrumentName, LocalDate date, double price) {
+    public Instrument(String instrumentName, LocalDate date, double price) {
         this.instrumentName = instrumentName;
         this.date = date;
         this.price = price;

@@ -1,6 +1,6 @@
 package com.infusion.calculation.parser;
 
-import com.infusion.calculation.Row;
+import com.infusion.calculation.Instrument;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -12,7 +12,7 @@ public class InstrumentLineParser implements LineParser {
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("dd-MMM-yyyy").withLocale(Locale.US);
 
     @Override
-    public Row parseLine(String line) {
+    public Instrument parseLine(String line) {
         if (line == null){
             fail("Line is null");
         }
@@ -25,7 +25,7 @@ public class InstrumentLineParser implements LineParser {
             fail("Incorrect format of the incoming line");
         }
 
-        return new Row(tokens[0],
+        return new Instrument(tokens[0],
                 LocalDate.parse(tokens[1], FORMATTER),
                 Double.parseDouble(tokens[2]));
     }

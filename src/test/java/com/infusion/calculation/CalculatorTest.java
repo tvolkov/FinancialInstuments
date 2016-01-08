@@ -31,7 +31,9 @@ public class CalculatorTest {
 
     private Calculator calculator;
 
-    private static final Row ROW = new Row("rowName", LocalDate.now(), 1d);
+    private static final Instrument VALID_INSTRUMENT = new Instrument("rowName", LocalDate.of(2015, 12, 14), 1d);
+    private static final Instrument INVALID_INSTRUMENT = new Instrument("rowName", LocalDate.of(2016, 1, 2), 1d);
+
 
     @Before
     public void setUp(){
@@ -41,30 +43,43 @@ public class CalculatorTest {
     @Test
     public void shouldDoNothingIfMeanCalculatorMapDoesntHaveEntryForTheGivenInstrument(){
         //given
-        when(meanCalculatorMap.containsKey(ROW.getInstrumentName())).thenReturn(false);
-        when(instrumentLineParser.parseLine(anyString())).thenReturn(ROW);
+        when(meanCalculatorMap.containsKey(VALID_INSTRUMENT.getInstrumentName())).thenReturn(false);
+        when(instrumentLineParser.parseLine(anyString())).thenReturn(VALID_INSTRUMENT);
 
         //when
         calculator.calculate(anyString());
 
         //then
-        verify(meanCalculatorMap, times(1)).containsKey(ROW.getInstrumentName());
+        verify(meanCalculatorMap, times(1)).containsKey(VALID_INSTRUMENT.getInstrumentName());
         verifyNoMoreInteractions(meanCalculatorMap);
     }
 
     @Test
     public void shouldCalculateMeanValueWhenThereIsAnEntryForTheGivenInstrument(){
         //given
-        when(meanCalculatorMap.containsKey(ROW.getInstrumentName())).thenReturn(true);
-        when(meanCalculatorMap.get(ROW.getInstrumentName())).thenReturn(meanCalculator);
-        when(instrumentLineParser.parseLine(anyString())).thenReturn(ROW);
+        when(meanCalculatorMap.containsKey(VALID_INSTRUMENT.getInstrumentName())).thenReturn(true);
+        when(meanCalculatorMap.get(VALID_INSTRUMENT.getInstrumentName())).thenReturn(meanCalculator);
+        when(instrumentLineParser.parseLine(anyString())).thenReturn(VALID_INSTRUMENT);
 
         //when
         calculator.calculate(anyString());
 
         //then
-        verify(meanCalculatorMap, times(1)).containsKey(ROW.getInstrumentName());
-        verify(meanCalculatorMap, times(1)).get(ROW.getInstrumentName());
-        verify(meanCalculator, times(1)).increment(ROW.getDate(), 1d);
+        verify(meanCalculatorMap, times(1)).containsKey(VALID_INSTRUMENT.getInstrumentName());
+        verify(meanCalculatorMap, times(1)).get(VALID_INSTRUMENT.getInstrumentName());
+        verify(meanCalculator, times(1)).increment(VALID_INSTRUMENT.getDate(), 1d);
+    }
+
+    @Test
+    public void shouldSkipCalculationIfDateInRowIsNotABusinessDate(){
+        //given
+        when(meanCalculatorMap.containsKey(INVALID_INSTRUMENT.getInstrumentName())).thenReturn(false);
+        when(instrumentLineParser.parseLine(anyString())).thenReturn(INVALID_INSTRUMENT);
+
+        //when
+        calculator.calculate(anyString());
+
+        //then
+        verifyZeroInteractions(meanCalculatorMap);
     }
 }

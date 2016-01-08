@@ -3,6 +3,8 @@ package com.infusion.calculation;
 import com.infusion.calculation.parser.InstrumentLineParser;
 import com.infusion.correction.MultiplierProvider;
 
+import java.time.DayOfWeek;
+import java.time.LocalDate;
 import java.util.Map;
 
 public class Calculator {
@@ -17,10 +19,18 @@ public class Calculator {
     }
 
     public void calculate(String line){
-        Row row = instrumentLineParser.parseLine(line);
-        if (meanCalculatorMap.containsKey(row.getInstrumentName())) {
-            meanCalculatorMap.get(row.getInstrumentName()).increment(row.getDate(),
-                    row.getPrice() * multiplierProvider.getMultiplierForInstrument(row.getInstrumentName()));
+        Instrument instrument = instrumentLineParser.parseLine(line);
+        if (!isBusinessDay(instrument.getDate())){
+            return;
         }
+        if (meanCalculatorMap.containsKey(instrument.getInstrumentName())) {
+            meanCalculatorMap.get(instrument.getInstrumentName()).increment(instrument.getDate(),
+                    instrument.getPrice() * multiplierProvider.getMultiplierForInstrument(instrument.getInstrumentName()));
+        }
+    }
+
+    private boolean isBusinessDay(LocalDate date) {
+        DayOfWeek dayOfWeek = date.getDayOfWeek();
+        return dayOfWeek != DayOfWeek.SATURDAY && dayOfWeek != DayOfWeek.SUNDAY;
     }
 }

@@ -1,6 +1,6 @@
 package com.infusion.calculation.parser;
 
-import com.infusion.calculation.Row;
+import com.infusion.calculation.Instrument;
 
 public interface LineParser {
 
@@ -9,5 +9,5 @@ public interface LineParser {
      * @param line
      * @return
      */
-   Row parseLine(String line);
+   Instrument parseLine(String line);
 }
