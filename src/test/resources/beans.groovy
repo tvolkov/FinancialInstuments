@@ -40,15 +40,6 @@ beans {
 
     dummyMultiplierProvider(DummyMultiplierProvider)
 
-//    boneCPConnectionProvider(BoneCPDataSource) {
-//        driverClass = 'org.h2.Driver'
-//        jdbcUrl = 'jdbc:h2:tcp://localhost:11527/mem:instruments;DB_CLOSE_DELAY=-1'
-//        user = 'sa'
-//        password = ''
-//        minConnectionsPerPartition = 500
-//        maxConnectionsPerPartition = 1000
-//        partitionCount = 1
-//    }
     connectionProvider(SimpleDriverDataSource){
         driverClass = 'org.h2.Driver'
         url = 'jdbc:h2:mem:instruments;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE'
