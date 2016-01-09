@@ -8,7 +8,7 @@ import java.sql.SQLException;
 @RunWith(JUnit4.class)
 public class FinancialInstrumentsLargeFileIT {
     private static final String PATH_TO_FILE = "src/test/resources/large_file.txt";
-
+    //todo make it work with the custom paths to input file
     @Test
     public void runApp(){
         System.out.println("Running app with large file");

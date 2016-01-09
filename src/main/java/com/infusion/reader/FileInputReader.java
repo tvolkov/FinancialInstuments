@@ -34,6 +34,7 @@ public class FileInputReader implements InputReader {
                 queue.put(line);
                 linesRead++;
             }
+            //todo catch these exception an appropriate way
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (IOException e) {

@@ -24,6 +24,16 @@ public class StdOutResultWriter implements ResultWriter {
         System.out.println("------------------");
         System.out.println("Number of lines processed: " + numberOfLinesProcessed);
         System.out.println("------------------");
-        System.out.println("Time elapsed: " + (totalExecutionTime > 1000 ? totalExecutionTime / 1000 + "s" : totalExecutionTime + "ms"));
+        System.out.println("Time elapsed: " + calculateExecutionTime(totalExecutionTime));
+    }
+
+    private String calculateExecutionTime(long executionTimeLong){
+        if (executionTimeLong < 1000){
+            return executionTimeLong + "ms";
+        } else if (executionTimeLong > 1000 && executionTimeLong < 60000){
+            return executionTimeLong / 1000 + "s " + executionTimeLong % 1000 + "ms";
+        } else {
+            return executionTimeLong / 60000 + "m " + executionTimeLong % 60000 / 1000 + "s ";
+        }
     }
 }

@@ -10,6 +10,12 @@ import com.infusion.correction.H2QueryRunner
 import com.jolbox.bonecp.BoneCPDataSource
 import org.apache.commons.math3.stat.descriptive.moment.Mean
 import org.springframework.beans.factory.config.MapFactoryBean
+import org.springframework.core.io.FileSystemResource
+import org.springframework.core.io.Resource
+import org.springframework.jdbc.datasource.SimpleDriverDataSource
+import org.springframework.jdbc.datasource.init.DataSourceInitializer
+import org.springframework.jdbc.datasource.init.DatabasePopulator
+import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator
 
 import java.time.LocalDate
 import java.util.concurrent.ConcurrentHashMap
@@ -34,14 +40,29 @@ beans {
 
     dummyMultiplierProvider(DummyMultiplierProvider)
 
-    connectionProvider(BoneCPDataSource) {
+//    boneCPConnectionProvider(BoneCPDataSource) {
+//        driverClass = 'org.h2.Driver'
+//        jdbcUrl = 'jdbc:h2:tcp://localhost:11527/mem:instruments;DB_CLOSE_DELAY=-1'
+//        user = 'sa'
+//        password = ''
+//        minConnectionsPerPartition = 500
+//        maxConnectionsPerPartition = 1000
+//        partitionCount = 1
+//    }
+    connectionProvider(SimpleDriverDataSource){
         driverClass = 'org.h2.Driver'
-        jdbcUrl = 'jdbc:h2:tcp://localhost:11527/mem:instruments;DB_CLOSE_DELAY=-1'
-        user = 'sa'
+        url = 'jdbc:h2:mem:instruments;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE'
+        username = 'sa'
         password = ''
-        minConnectionsPerPartition = 500
-        maxConnectionsPerPartition = 1000
-        partitionCount = 2
+    }
+
+    createDatabaseScript(FileSystemResource, 'src/test/resources/create_database.sql')
+
+    initialDatabasePopulator(ResourceDatabasePopulator, createDatabaseScript)
+
+    dataSourceInitializer(DataSourceInitializer){
+        dataSource = connectionProvider
+        databasePopulator = initialDatabasePopulator
     }
 
     databaseQueryRunner(H2QueryRunner)
