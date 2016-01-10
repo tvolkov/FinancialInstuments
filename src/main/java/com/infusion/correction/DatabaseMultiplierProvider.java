@@ -8,7 +8,7 @@ public class DatabaseMultiplierProvider implements MultiplierProvider {
     private DatabaseQueryRunner databaseQueryRunner;
 
     public DatabaseMultiplierProvider(DatabaseQueryRunner databaseQueryRunner) {
-        LOGGER.debug("creating DatabaseMultiplierProvider");
+        LOGGER.debug("creating non-cached DatabaseMultiplierProvider");
         this.databaseQueryRunner = databaseQueryRunner;
     }
 

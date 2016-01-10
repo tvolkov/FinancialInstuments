@@ -28,6 +28,9 @@ public class CalculatorTest {
     @Mock
     private CalculationStrategy calculationStrategy;
 
+    @Mock
+    private DateValidator dateValidator;
+
     private Calculator calculator;
 
     private static final Instrument VALID_INSTRUMENT = new Instrument("rowName", LocalDate.of(2015, 12, 14), 1d);
@@ -37,7 +40,7 @@ public class CalculatorTest {
     @Before
     public void setUp(){
         when(multiplierProvider.getMultiplierForInstrument(anyString())).thenReturn(1d);
-        this.calculator = new Calculator(calculationStrategyProvider, multiplierProvider, instrumentLineParser);
+        this.calculator = new Calculator(calculationStrategyProvider, multiplierProvider, instrumentLineParser, dateValidator);
     }
 
     @Test
@@ -45,6 +48,7 @@ public class CalculatorTest {
         //given
         when(calculationStrategyProvider.getCalculationStrategy(VALID_INSTRUMENT.getInstrumentName())).thenReturn(calculationStrategy);
         when(instrumentLineParser.parseLine(anyString())).thenReturn(VALID_INSTRUMENT);
+        when(dateValidator.isDateValid(VALID_INSTRUMENT.getDate())).thenReturn(true);
 
         //when
         calculator.calculate(anyString());
@@ -55,9 +59,10 @@ public class CalculatorTest {
     }
 
     @Test
-    public void shouldSkipCalculationIfDateInRowIsNotABusinessDate(){
+    public void shouldSkipCalculationIfDateInRowIsNotValid(){
         //given
         when(instrumentLineParser.parseLine(anyString())).thenReturn(INVALID_INSTRUMENT);
+        when(dateValidator.isDateValid(VALID_INSTRUMENT.getDate())).thenReturn(false);
 
         //when
         calculator.calculate(anyString());

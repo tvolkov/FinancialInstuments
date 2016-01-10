@@ -1,7 +1,9 @@
 import com.infusion.App
 import com.infusion.calculation.CalculationStrategyProvider
+import com.infusion.calculation.DateValidator
 import com.infusion.calculation.InstrumentMetricsCalculationEngine
 import com.infusion.calculation.MeanCalculationStrategy
+import com.infusion.calculation.parser.InstrumentLineParser
 import com.infusion.correction.CachedDatabaseMultiplierProvider
 import com.infusion.correction.DatabaseMultiplierProvider
 import com.infusion.correction.H2QueryRunner
@@ -16,7 +18,6 @@ import org.springframework.jdbc.datasource.init.DataSourceInitializer
 import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator
 
 import java.time.LocalDate
-import java.util.concurrent.ConcurrentHashMap
 
 beans {
     xmlns context:"http://www.springframework.org/schema/context"
@@ -31,7 +32,7 @@ beans {
                 "INSTRUMENT1": totalMeanCalculationStrategy,
                 "INSTRUMENT2": november2014MeanCalculationStrategy,
                 "INSTRUMENT3": year2014MeanCalculator,
-        ] as ConcurrentHashMap
+        ]
     }
 
     calculationStrategiesProvider(CalculationStrategyProvider, metricCalculators, 10)
@@ -67,6 +68,14 @@ beans {
     stdOutPlainTextResultWriter(PlainTextResultWriter, stdOutPrinter)
     htmlFileResultWriter(HtmlResultWriter, filePrinter)
 
+    LocalDate threshold = LocalDate.of(2014, 12, 19)
+    dateValidator(DateValidator, threshold){ bean ->
+        bean.scope = 'prototype'
+    }
 
-    meanValuesCalculationEngine(InstrumentMetricsCalculationEngine, App.getPathToFile(), calculationStrategiesProvider, multiplierProvider, [stdOutPlainTextResultWriter, htmlFileResultWriter])
+    instrumentLineParser(InstrumentLineParser){ bean ->
+        bean.scope = 'prototype'
+    }
+
+    meanValuesCalculationEngine(InstrumentMetricsCalculationEngine, App.getPathToFile(), calculationStrategiesProvider, [stdOutPlainTextResultWriter, htmlFileResultWriter])
 }

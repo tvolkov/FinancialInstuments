@@ -2,25 +2,28 @@ package com.infusion.calculation;
 
 import com.infusion.calculation.parser.InstrumentLineParser;
 import com.infusion.correction.MultiplierProvider;
-
-import java.time.DayOfWeek;
-import java.time.LocalDate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class Calculator {
     private final CalculationStrategyProvider calculationStrategyProvider;
     private final MultiplierProvider multiplierProvider;
     private final InstrumentLineParser instrumentLineParser;
+    private final DateValidator dateValidator;
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(Calculator.class);
 
     public Calculator(CalculationStrategyProvider calculationStrategyProvider, MultiplierProvider multiplierProvider,
-                      InstrumentLineParser instrumentLineParser){
+                      InstrumentLineParser instrumentLineParser, DateValidator dateValidator){
         this.calculationStrategyProvider = calculationStrategyProvider;
         this.multiplierProvider = multiplierProvider;
         this.instrumentLineParser = instrumentLineParser;
+        this.dateValidator = dateValidator;
     }
 
     public void calculate(String line){
         Instrument instrument = instrumentLineParser.parseLine(line);
-        if (!isBusinessDay(instrument.getDate())){
+        if (!dateValidator.isDateValid(instrument.getDate())){
             return;
         }
         calculationStrategyProvider.getCalculationStrategy(instrument.getInstrumentName())
@@ -30,10 +33,5 @@ public class Calculator {
 
     private double adjustInstrumentPrice(String instrumentName, double instrumentPrice){
          return instrumentPrice * multiplierProvider.getMultiplierForInstrument(instrumentName);
-    }
-
-    private boolean isBusinessDay(LocalDate date) {
-        DayOfWeek dayOfWeek = date.getDayOfWeek();
-        return dayOfWeek != DayOfWeek.SATURDAY && dayOfWeek != DayOfWeek.SUNDAY;
     }
 }
