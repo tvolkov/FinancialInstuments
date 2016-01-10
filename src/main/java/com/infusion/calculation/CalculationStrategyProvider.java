@@ -33,4 +33,9 @@ public class CalculationStrategyProvider implements ICalculationStrategyProvider
     public Iterator<Map.Entry<String, CalculationStrategy>> getIterator(){
         return calculationStrategies.entrySet().iterator();
     }
+
+    @Override
+    public int getNumberOfInstruments() {
+        return calculationStrategies.size();
+    }
 }

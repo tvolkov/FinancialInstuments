@@ -1,0 +1,38 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <title>Calculation results</title>
+    </head>
+    <body>
+        <div id="header">
+            <h1>Calculation results</h1>
+        </div>
+
+        <div id="section">
+            <h1>Total instruments</h1>
+            <p>{{totalInstruments}}</p>
+        </div>
+        <div id="section">
+            <h1>Number of lines processed</h1>
+            <p>{{numberOfLinesProcessed}}</p>
+        </div>
+        <div id="section">
+            <h1>Time elapsed</h1>
+            <p>{{timeElapsed}}</p>
+        </div>
+        <div id="section">
+            <h1>Calculated values</h1>
+            <p>
+                {{#calculatedValues}}
+                    <li>{{.}}</li>
+                {{/calculatedValues}}
+            </p>
+        </div>
+
+        <div id="footer">
+            Good bye!
+        </div>
+    </body>
+</html>

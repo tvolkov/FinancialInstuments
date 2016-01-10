@@ -88,7 +88,7 @@ import java.util.concurrent.*;
         long endTime = System.currentTimeMillis();
 
         this.totalExecutionTime = endTime - startTime;
-        resultWriter.writeResults(calculationStrategyProvider, numberOfLinesProcessed, totalExecutionTime);
+        resultWriter.writeResults(calculationStrategyProvider.getIterator(), calculationStrategyProvider.getNumberOfInstruments(), numberOfLinesProcessed, totalExecutionTime);
         LOGGER.info("done");
     }
 }

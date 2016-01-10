@@ -1,44 +1,26 @@
 package com.infusion.output;
 
 import com.infusion.calculation.CalculationStrategy;
-import com.infusion.calculation.ICalculationStrategyProvider;
 
 import java.util.Iterator;
 import java.util.Map;
 
-//todo create another resultwriters, like html, csv, or something else
-public class StdOutResultWriter implements ResultWriter {
-
-    public StdOutResultWriter(){
-    }
+public class StdOutResultWriter extends AbstractResultWriter {
 
     @Override
-    public void writeResults(ICalculationStrategyProvider calculationStrategyProvider, long numberOfLinesProcessed, long totalExecutionTime) {
-        System.out.println("Calculated values:");
+    public void writeResults(Iterator<Map.Entry<String, CalculationStrategy>> iterator, int numberOfInstruments, long numberOfLinesProcessed, long totalExecutionTime) {
+        final String lineSeparator = System.lineSeparator();
+        StringBuilder stringBuilder = new StringBuilder("Calculated values:");
+        iterator.forEachRemaining(entry -> stringBuilder.append(entry.getKey()).append(": ")
+                .append(entry.getValue().getResult()).append(lineSeparator));
 
-        Iterator<Map.Entry<String, CalculationStrategy>> iterator = calculationStrategyProvider.getIterator();
-        int size = 0;
-        while (iterator.hasNext()){
-            size++;
-            Map.Entry<String, CalculationStrategy> entry = iterator.next();
-            System.out.println(entry.getKey() + ": " + entry.getValue().getResult());
-
-        }
-        System.out.println("------------------");
-        System.out.println("Total instruments: " + size);
-        System.out.println("------------------");
-        System.out.println("Number of lines processed: " + numberOfLinesProcessed);
-        System.out.println("------------------");
-        System.out.println("Time elapsed: " + calculateExecutionTime(totalExecutionTime));
-    }
-
-    private String calculateExecutionTime(long executionTimeLong){
-        if (executionTimeLong < 1000){
-            return executionTimeLong + "ms";
-        } else if (executionTimeLong > 1000 && executionTimeLong < 60000){
-            return executionTimeLong / 1000 + "s " + executionTimeLong % 1000 + "ms";
-        } else {
-            return executionTimeLong / 60000 + "m " + executionTimeLong % 60000 / 1000 + "s ";
-        }
+        stringBuilder.append(lineSeparator).append("------------------").append(lineSeparator)
+                .append("Total instruments: ").append(numberOfInstruments).append(lineSeparator)
+                .append("------------------").append(lineSeparator)
+                .append("Number of lines processed: ").append(numberOfLinesProcessed).append(lineSeparator)
+                .append("------------------").append(lineSeparator)
+                .append("Time elapsed: ").append(calculateExecutionTime(totalExecutionTime))
+                .append(lineSeparator);
+        System.out.println(stringBuilder.toString());
     }
 }
