@@ -8,34 +8,32 @@ import com.infusion.output.ResultWriter;
 import com.infusion.reader.FileInputReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.support.GenericGroovyApplicationContext;
 
 import java.io.File;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.*;
 
-    public class InstrumentMetricsCalculationEngine implements CalculationEngine {
+public class InstrumentMetricsCalculationEngine implements CalculationEngine {
 
     private final CalculationStrategyProvider calculationStrategyProvider;
-    private final MultiplierProvider multiplierProvider;
-    private final Set<Future<Long>> linesProcessed = new HashSet<>();
     private final String pathToFile;
     private final ResultWriter[] resultWriters;
-
-    private long totalExecutionTime;
-    private long numberOfLinesProcessed;
+    private final BlockingQueue<String> queue = new ArrayBlockingQueue<>(DEFAULT_QUEUE_CAPACITY);
+    private final Set<Future<Long>> linesProcessed = new HashSet<>();
 
     private static final int DEFAULT_QUEUE_CAPACITY = 5000000;
     private static final int DEFAULT_THREAD_POOL_SIZE = Runtime.getRuntime().availableProcessors();
+
     private static final Logger LOGGER = LoggerFactory.getLogger(InstrumentMetricsCalculationEngine.class);
 
     public static final String TERMINATING_ROW = "####END_OF_DATA####";
 
     public InstrumentMetricsCalculationEngine(String pathToFile, CalculationStrategyProvider calculationStrategyProvider,
-                                              MultiplierProvider multiplierProvider, ResultWriter... resultWriter) {
+                                              ResultWriter... resultWriter) {
         this.pathToFile = pathToFile;
         this.calculationStrategyProvider = calculationStrategyProvider;
-        this.multiplierProvider = multiplierProvider;
         this.resultWriters = resultWriter;
     }
 
@@ -43,41 +41,40 @@ import java.util.concurrent.*;
     public void calculateMetrics() {
         long startTime = System.currentTimeMillis();
 
-        BlockingQueue<String> queue = new ArrayBlockingQueue<>(DEFAULT_QUEUE_CAPACITY);
+        GenericGroovyApplicationContext ctx = new GenericGroovyApplicationContext("classpath:beans.groovy");
 
         //start input reader thread
         CountDownLatch countDownLatch = new CountDownLatch(1);
-        //todo use this thread pool for calculation workers as well
-        ExecutorService reader = Executors.newSingleThreadExecutor();
-        LOGGER.info("Starting reader thread with file " + pathToFile);
-        reader.submit(new FileInputReader(new File(pathToFile), queue, countDownLatch));
-        reader.shutdown();
+        startReaderThread(countDownLatch);
 
         //start calculator threads
-        ThreadFactory threadFactory = new ThreadFactoryBuilder().setNameFormat("CalculationWorker-%d").build();
-        ExecutorService calculators = (ThreadPoolExecutor) Executors.newFixedThreadPool(DEFAULT_THREAD_POOL_SIZE, threadFactory);
-        for (int i = 0; i < DEFAULT_THREAD_POOL_SIZE; i++) {
-            linesProcessed.add(calculators.submit(new CalculationWorker(queue, new Calculator(calculationStrategyProvider,
-                    multiplierProvider, new InstrumentLineParser()))));
-        }
-        calculators.shutdown();
+        ExecutorService calculators = startCalculatorThreads(ctx);
 
         //wait while reader is done
         try {
             countDownLatch.await();
         } catch (InterruptedException e) {
+            LOGGER.error("Error occurred", e);
             throw new RuntimeException(e);
         }
 
         //tell calculators to stop
-        int count = 0;
-        while (!calculators.isTerminated() && count++ < DEFAULT_THREAD_POOL_SIZE) {
-            LOGGER.debug("putting terminating row into queue");
-            queue.offer(TERMINATING_ROW);
-        }
+        terminateCalculators(calculators);
 
-        //get results
-        LOGGER.info("getting results");
+        long endTime = System.currentTimeMillis();
+
+        long totalExecutionTime = endTime - startTime;
+
+        //obtaining results
+        for (ResultWriter resultWriter : resultWriters){
+            resultWriter.writeResults(new CalculationResult(calculationStrategyProvider.getIterator(),
+                    calculationStrategyProvider.getNumberOfInstruments(), countLines(), totalExecutionTime));
+        }
+        LOGGER.info("done");
+    }
+
+    private long countLines(){
+        long numberOfLinesProcessed = 0;
         for (Future<Long> future : linesProcessed) {
             try {
                 numberOfLinesProcessed += future.get();
@@ -86,13 +83,40 @@ import java.util.concurrent.*;
                 throw new RuntimeException(e);
             }
         }
-        long endTime = System.currentTimeMillis();
+        return numberOfLinesProcessed;
+    }
 
-        this.totalExecutionTime = endTime - startTime;
-        for (ResultWriter resultWriter : resultWriters){
-            resultWriter.writeResults(new CalculationResult(calculationStrategyProvider.getIterator(),
-                    calculationStrategyProvider.getNumberOfInstruments(),numberOfLinesProcessed, totalExecutionTime));
+    private Calculator createNewCalculator(GenericGroovyApplicationContext ctx) {
+        return new Calculator(
+                calculationStrategyProvider,
+                (MultiplierProvider) ctx.getBean("multiplierProvider"),
+                (InstrumentLineParser) ctx.getBean("instrumentLineParser"),
+                (DateValidator) ctx.getBean("dateValidator"));
+    }
+
+    private void startReaderThread(CountDownLatch countDownLatch){
+        ExecutorService reader = Executors.newSingleThreadExecutor();
+        LOGGER.info("Starting reader thread with file " + pathToFile);
+        reader.submit(new FileInputReader(new File(pathToFile), queue, countDownLatch));
+        reader.shutdown();
+    }
+
+    private ExecutorService startCalculatorThreads(GenericGroovyApplicationContext ctx){
+        ThreadFactory threadFactory = new ThreadFactoryBuilder().setNameFormat("CalculationWorker-%d").build();
+        ExecutorService calculators = Executors.newFixedThreadPool(DEFAULT_THREAD_POOL_SIZE, threadFactory);
+
+        for (int i = 0; i < DEFAULT_THREAD_POOL_SIZE; i++) {
+            linesProcessed.add(calculators.submit(new CalculationWorker(queue, createNewCalculator(ctx))));
         }
-        LOGGER.info("done");
+        calculators.shutdown();
+        return calculators;
+    }
+
+    private void terminateCalculators(ExecutorService calculators){
+        int count = 0;
+        while (!calculators.isTerminated() && count++ < DEFAULT_THREAD_POOL_SIZE) {
+            LOGGER.debug("putting terminating row into queue");
+            queue.offer(TERMINATING_ROW);
+        }
     }
 }
