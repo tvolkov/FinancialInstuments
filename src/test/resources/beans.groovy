@@ -60,8 +60,9 @@ beans {
         multiplierProvider(DatabaseMultiplierProvider, databaseQueryRunner)
     }
 
-//    resultWriter(StdOutResultWriter)
-    resultWriter(HtmlResultWriter, 'target/result.html')
+    stdOutResultWriter(StdOutResultWriter)
+    htmlResultWriter(HtmlResultWriter, 'target/result.html')
 
-    meanValuesCalculationEngine(InstrumentMetricsCalculationEngine, App.getPathToFile(), calculationStrategiesProvider, multiplierProvider, resultWriter)
+
+    meanValuesCalculationEngine(InstrumentMetricsCalculationEngine, App.getPathToFile(), calculationStrategiesProvider, multiplierProvider, [stdOutResultWriter, htmlResultWriter])
 }

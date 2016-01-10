@@ -11,7 +11,7 @@ public class StdOutResultWriter extends AbstractResultWriter {
     public void writeResults(Iterator<Map.Entry<String, CalculationStrategy>> iterator, int numberOfInstruments, long numberOfLinesProcessed, long totalExecutionTime) {
         final String lineSeparator = System.lineSeparator();
         StringBuilder stringBuilder = new StringBuilder("Calculated values:");
-        iterator.forEachRemaining(entry -> stringBuilder.append(entry.getKey()).append(": ")
+        iterator.forEachRemaining(entry -> stringBuilder.append(lineSeparator).append(entry.getKey()).append(": ")
                 .append(entry.getValue().getResult()).append(lineSeparator));
 
         stringBuilder.append(lineSeparator).append("------------------").append(lineSeparator)

@@ -26,10 +26,11 @@ public class HtmlResultWriter extends FileResultWriter {
         scopes.put("timeElapsed", totalExecutionTime);
         scopes.put("calculatedValues", getCalculatedValuesList(iterator));
         Mustache mustache = mf.compile("template.mustache");
-        try {
-            mustache.execute(new PrintWriter(new File(filePath)), scopes);
+        try (PrintWriter printWriter = new PrintWriter(new File(filePath));){
+            mustache.execute(printWriter, scopes);
+            printWriter.flush();
         } catch (FileNotFoundException e) {
-            e.printStackTrace();
+            System.err.println("File not found!");
         }
     }
 

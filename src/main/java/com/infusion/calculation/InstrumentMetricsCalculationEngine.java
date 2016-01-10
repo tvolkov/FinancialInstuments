@@ -19,7 +19,7 @@ import java.util.concurrent.*;
     private final MultiplierProvider multiplierProvider;
     private final Set<Future<Long>> linesProcessed = new HashSet<>();
     private final String pathToFile;
-    private final ResultWriter resultWriter;
+    private final ResultWriter[] resultWriters;
 
     private long totalExecutionTime;
     private long numberOfLinesProcessed;
@@ -31,11 +31,11 @@ import java.util.concurrent.*;
     public static final String TERMINATING_ROW = "####END_OF_DATA####";
 
     public InstrumentMetricsCalculationEngine(String pathToFile, CalculationStrategyProvider calculationStrategyProvider,
-                                              MultiplierProvider multiplierProvider, ResultWriter resultWriter) {
+                                              MultiplierProvider multiplierProvider, ResultWriter... resultWriter) {
         this.pathToFile = pathToFile;
         this.calculationStrategyProvider = calculationStrategyProvider;
         this.multiplierProvider = multiplierProvider;
-        this.resultWriter = resultWriter;
+        this.resultWriters = resultWriter;
     }
 
     @Override
@@ -88,7 +88,9 @@ import java.util.concurrent.*;
         long endTime = System.currentTimeMillis();
 
         this.totalExecutionTime = endTime - startTime;
-        resultWriter.writeResults(calculationStrategyProvider.getIterator(), calculationStrategyProvider.getNumberOfInstruments(), numberOfLinesProcessed, totalExecutionTime);
+        for (ResultWriter resultWriter : resultWriters){
+            resultWriter.writeResults(calculationStrategyProvider.getIterator(), calculationStrategyProvider.getNumberOfInstruments(), numberOfLinesProcessed, totalExecutionTime);
+        }
         LOGGER.info("done");
     }
 }
