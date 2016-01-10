@@ -81,7 +81,7 @@ import java.util.concurrent.*;
             try {
                 numberOfLinesProcessed += future.get();
             } catch (InterruptedException | ExecutionException e) {
-                System.out.println(e.getMessage());
+                System.out.println(e);
                 throw new RuntimeException(e);
             }
         }

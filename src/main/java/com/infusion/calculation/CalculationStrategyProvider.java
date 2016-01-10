@@ -7,17 +7,21 @@ import java.util.concurrent.locks.ReentrantLock;
 
 public class CalculationStrategyProvider implements ICalculationStrategyProvider {
     private final Map<String, CalculationStrategy> calculationStrategies;
+    private final int defaultCalculationStrategyNumberOfNewest;
     private Lock lock = new ReentrantLock();
 
-    public CalculationStrategyProvider(Map<String, CalculationStrategy> calculationStrategies){
+    public CalculationStrategyProvider(Map<String, CalculationStrategy> calculationStrategies,
+                                       int defaultCalculationStrategyNumberOfNewest){
         this.calculationStrategies = calculationStrategies;
+        this.defaultCalculationStrategyNumberOfNewest = defaultCalculationStrategyNumberOfNewest;
     }
 
     public CalculationStrategy getCalculationStrategy(String instrumentName){
         lock.lock();
         try {
             if (!calculationStrategies.containsKey(instrumentName)) {
-                calculationStrategies.put(instrumentName, new DefaultCalculationStrategy(10));
+                calculationStrategies.put(instrumentName,
+                        new DefaultCalculationStrategy(defaultCalculationStrategyNumberOfNewest));
             }
 
             return calculationStrategies.get(instrumentName);

@@ -13,6 +13,7 @@ import org.springframework.jdbc.datasource.init.DataSourceInitializer
 import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator
 
 import java.time.LocalDate
+import java.util.concurrent.ConcurrentHashMap
 
 beans {
     xmlns context:"http://www.springframework.org/schema/context"
@@ -27,10 +28,10 @@ beans {
                 "INSTRUMENT1": totalMeanCalculationStrategy,
                 "INSTRUMENT2": november2014MeanCalculationStrategy,
                 "INSTRUMENT3": year2014MeanCalculator,
-        ]
+        ] as ConcurrentHashMap
     }
 
-    calculationStrategiesProvider(CalculationStrategyProvider, metricCalculators)
+    calculationStrategiesProvider(CalculationStrategyProvider, metricCalculators, 10)
 
     connectionProvider(SimpleDriverDataSource){
         driverClass = 'org.h2.Driver'

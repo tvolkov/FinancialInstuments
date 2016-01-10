@@ -17,11 +17,15 @@ public class StdOutResultWriter implements ResultWriter {
         System.out.println("Calculated values:");
 
         Iterator<Map.Entry<String, CalculationStrategy>> iterator = calculationStrategyProvider.getIterator();
+        int size = 0;
         while (iterator.hasNext()){
+            size++;
             Map.Entry<String, CalculationStrategy> entry = iterator.next();
             System.out.println(entry.getKey() + ": " + entry.getValue().getResult());
 
         }
+        System.out.println("------------------");
+        System.out.println("Total instruments: " + size);
         System.out.println("------------------");
         System.out.println("Number of lines processed: " + numberOfLinesProcessed);
         System.out.println("------------------");

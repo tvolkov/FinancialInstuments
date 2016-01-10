@@ -24,13 +24,14 @@ public class CalculationStrategyProviderTest {
     private CalculationStrategy calculationStrategy;
 
     private static final String KEY = "INSTRUMENT1";
+    private static final int NUMBER_OF_NEWEST = 10;
 
     @Test
     public void shouldPutNewDefaultCalculationStrategyIfAbsentAndReturnIt() {
         //given
         when(calculationStrategyMap.containsKey(KEY)).thenReturn(false);
         when(calculationStrategyMap.get(KEY)).thenReturn(calculationStrategy);
-        calculationStrategyProvider = new CalculationStrategyProvider(calculationStrategyMap);
+        calculationStrategyProvider = new CalculationStrategyProvider(calculationStrategyMap, NUMBER_OF_NEWEST);
 
         //when
         CalculationStrategy newCalculationStrategy = calculationStrategyProvider.getCalculationStrategy(KEY);
@@ -45,7 +46,7 @@ public class CalculationStrategyProviderTest {
         //given
         when(calculationStrategyMap.containsKey(KEY)).thenReturn(true);
         when(calculationStrategyMap.get(KEY)).thenReturn(calculationStrategy);
-        calculationStrategyProvider = new CalculationStrategyProvider(calculationStrategyMap);
+        calculationStrategyProvider = new CalculationStrategyProvider(calculationStrategyMap, NUMBER_OF_NEWEST);
 
         //when
         CalculationStrategy newCalculationStrategy = calculationStrategyProvider.getCalculationStrategy(KEY);
