@@ -11,8 +11,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
-public class DatabaseMultiplierProviderTest {
-    private DatabaseMultiplierProvider databaseMultiplierProvider;
+public class CachedDatabaseMultiplierProviderTest {
+    private CachedDatabaseMultiplierProvider cachedDatabaseMultiplierProvider;
 
     @Mock
     private DatabaseQueryRunner databaseQueryRunner;
@@ -23,10 +23,10 @@ public class DatabaseMultiplierProviderTest {
     public void shouldUpdateValueInCacheAndReturnIt() throws InterruptedException {
         //given
         when(databaseQueryRunner.getMultiplierForInstument(INSTRUMENT_NAME)).thenReturn(1d).thenReturn(2d);
-        databaseMultiplierProvider = new DatabaseMultiplierProvider(databaseQueryRunner);
+        cachedDatabaseMultiplierProvider = new CachedDatabaseMultiplierProvider(databaseQueryRunner);
 
         //when
-        double price1 = databaseMultiplierProvider.getMultiplierForInstrument(INSTRUMENT_NAME);
+        double price1 = cachedDatabaseMultiplierProvider.getMultiplierForInstrument(INSTRUMENT_NAME);
 
         //then
         assertEquals(1d, price1, 0d);

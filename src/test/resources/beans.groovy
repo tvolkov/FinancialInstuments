@@ -2,8 +2,8 @@ import com.infusion.App
 import com.infusion.calculation.CalculationStrategyProvider
 import com.infusion.calculation.InstrumentMetricsCalculationEngine
 import com.infusion.calculation.MeanCalculationStrategy
+import com.infusion.correction.CachedDatabaseMultiplierProvider
 import com.infusion.correction.DatabaseMultiplierProvider
-
 import com.infusion.correction.H2QueryRunner
 import com.infusion.output.StdOutResultWriter
 import org.springframework.beans.factory.config.MapFactoryBean
@@ -40,8 +40,9 @@ beans {
     }
 
     createDatabaseScript(FileSystemResource, 'src/test/resources/create_database.sql')
+//    createTriggerScript(FileSystemResource, 'src/test/resources/create_db_trigger.sql')
 
-    initialDatabasePopulator(ResourceDatabasePopulator, createDatabaseScript)
+    initialDatabasePopulator(ResourceDatabasePopulator, [createDatabaseScript/*, createTriggerScript*/])
 
     dataSourceInitializer(DataSourceInitializer){
         dataSource = connectionProvider
@@ -50,7 +51,12 @@ beans {
 
     databaseQueryRunner(H2QueryRunner)
 
-    multiplierProvider(DatabaseMultiplierProvider, databaseQueryRunner)
+
+    if (System.properties.'useCachedMultiplierProvider' == 'true'){
+        multiplierProvider(CachedDatabaseMultiplierProvider, databaseQueryRunner)
+    } else {
+        multiplierProvider(DatabaseMultiplierProvider, databaseQueryRunner)
+    }
 
     resultWriter(StdOutResultWriter)
 

@@ -26,6 +26,7 @@ public class FileInputReader implements InputReader {
     public void processInputData() {
         if (!inputFile.exists()) {
             LOGGER.debug("file does not exist, aborting");
+            countDownLatch.countDown();
             return;
         }
         LOGGER.debug("start reading file");

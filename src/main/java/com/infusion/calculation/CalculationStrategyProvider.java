@@ -5,7 +5,7 @@ import java.util.Map;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-class CalculationStrategyProvider implements ICalculationStrategyProvider {
+public class CalculationStrategyProvider implements ICalculationStrategyProvider {
     private final Map<String, CalculationStrategy> calculationStrategies;
     private Lock lock = new ReentrantLock();
 

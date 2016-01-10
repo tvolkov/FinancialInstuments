@@ -3,7 +3,7 @@ import com.infusion.calculation.CalculationStrategyProvider
 import com.infusion.calculation.InstrumentMetricsCalculationEngine
 import com.infusion.calculation.MeanCalculationStrategy
 import com.infusion.output.StdOutResultWriter
-import com.infusion.correction.DatabaseMultiplierProvider
+import com.infusion.correction.CachedDatabaseMultiplierProvider
 
 import com.infusion.correction.H2QueryRunner
 import com.jolbox.bonecp.BoneCPDataSource
@@ -41,7 +41,7 @@ beans {
 
     databaseQueryRunner(H2QueryRunner)
 
-    multiplierProvider(DatabaseMultiplierProvider, databaseQueryRunner)
+    multiplierProvider(CachedDatabaseMultiplierProvider, databaseQueryRunner)
 
     resultWriter(StdOutResultWriter)
 
