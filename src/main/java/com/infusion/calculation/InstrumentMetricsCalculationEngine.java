@@ -3,6 +3,7 @@ package com.infusion.calculation;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.infusion.calculation.parser.InstrumentLineParser;
 import com.infusion.correction.MultiplierProvider;
+import com.infusion.output.CalculationResult;
 import com.infusion.output.ResultWriter;
 import com.infusion.reader.FileInputReader;
 import org.slf4j.Logger;
@@ -89,7 +90,8 @@ import java.util.concurrent.*;
 
         this.totalExecutionTime = endTime - startTime;
         for (ResultWriter resultWriter : resultWriters){
-            resultWriter.writeResults(calculationStrategyProvider.getIterator(), calculationStrategyProvider.getNumberOfInstruments(), numberOfLinesProcessed, totalExecutionTime);
+            resultWriter.writeResults(new CalculationResult(calculationStrategyProvider.getIterator(),
+                    calculationStrategyProvider.getNumberOfInstruments(),numberOfLinesProcessed, totalExecutionTime));
         }
         LOGGER.info("done");
     }

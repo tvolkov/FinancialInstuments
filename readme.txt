@@ -6,7 +6,7 @@ since accessing db on each line is very time-consuming.
 On the other hand, I tried to cache the db data using Guava Cache, but it's is not 100% correct. This cache updates
 on timer, hence this approach can and will leave some db updates unattended.
 I also investigated how the cache can be updated by db trigger, but this approach is tied to the exact database technology
-(like h2, it has the Java API for triggers, unlike many other db's), so I decided to put it aside.
+(like h2, it has the Java API, unlike many other db's), so I decided to put it aside.
 I believe there're several ways to solve this problem (like using JMS for instance), but I didn't want to make it very
 sophisticated, so by default my app queries database each time (though I haven't delete the cacheable solution,
 you can try it by using -DuseCachedMultiplierProvider=true)

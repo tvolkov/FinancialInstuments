@@ -1,15 +1,22 @@
 package com.infusion.output;
 
-import com.infusion.calculation.CalculationStrategy;
-
-import java.util.Iterator;
-import java.util.Map;
+import com.infusion.output.printer.Printer;
 
 public abstract class AbstractResultWriter implements ResultWriter {
 
+    private Printer printer;
+
+    public AbstractResultWriter(Printer printer){
+        this.printer = printer;
+    }
+
     @Override
-    public abstract void writeResults(Iterator<Map.Entry<String, CalculationStrategy>> iterator,
-                                      int numberOfInstruments, long numberOfLinesProcessed, long totalExecutionTime);
+    public final void writeResults(CalculationResult calculationResult) {
+        printer.printResult(createContent(calculationResult));
+    }
+
+    protected abstract String createContent(CalculationResult calculationResult);
+
 
     protected String calculateExecutionTime(long executionTimeLong){
         if (executionTimeLong < 1000){

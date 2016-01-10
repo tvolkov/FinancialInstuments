@@ -4,34 +4,29 @@ import com.github.mustachejava.DefaultMustacheFactory;
 import com.github.mustachejava.Mustache;
 import com.github.mustachejava.MustacheFactory;
 import com.infusion.calculation.CalculationStrategy;
+import com.infusion.output.printer.Printer;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.*;
 
-public class HtmlResultWriter extends FileResultWriter {
+public class HtmlResultWriter extends AbstractResultWriter {
 
-    public HtmlResultWriter(String filePath) {
-        super(filePath);
+    public HtmlResultWriter(Printer printer) {
+        super(printer);
     }
 
     @Override
-    public void writeResults(Iterator<Map.Entry<String, CalculationStrategy>> iterator,
-                             int numberOfInstruments, long numberOfLinesProcessed, long totalExecutionTime) {
+    protected String createContent(CalculationResult calculationResult) {
         MustacheFactory mf = new DefaultMustacheFactory();
-        HashMap<String, Object> scopes = new HashMap<String, Object>();
-        scopes.put("totalInstruments", numberOfInstruments);
-        scopes.put("numberOfLinesProcessed", numberOfLinesProcessed);
-        scopes.put("timeElapsed", totalExecutionTime);
-        scopes.put("calculatedValues", getCalculatedValuesList(iterator));
+        HashMap<String, Object> scopes = new HashMap<>();
+        scopes.put("totalInstruments", calculationResult.getNumberOfInstruments());
+        scopes.put("numberOfLinesProcessed", calculationResult.getNumberOfLinesProcessed());
+        scopes.put("timeElapsed", calculateExecutionTime(calculationResult.getTotalExecutionTime()));
+        scopes.put("calculatedValues", getCalculatedValuesList(calculationResult.getIterator()));
         Mustache mustache = mf.compile("template.mustache");
-        try (PrintWriter printWriter = new PrintWriter(new File(filePath));){
-            mustache.execute(printWriter, scopes);
-            printWriter.flush();
-        } catch (FileNotFoundException e) {
-            System.err.println("File not found!");
-        }
+        StringWriter stringWriter = new StringWriter();
+        mustache.execute(stringWriter, scopes);
+        return stringWriter.toString();
     }
 
     private List<String> getCalculatedValuesList(Iterator<Map.Entry<String, CalculationStrategy>> iterator){

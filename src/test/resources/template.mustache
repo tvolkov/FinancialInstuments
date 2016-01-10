@@ -4,35 +4,45 @@
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
         <title>Calculation results</title>
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+        <style>
+            p {
+                padding-left: 22px ;
+            }
+            li {
+                padding-left: 22px ;
+            }
+        </style>
     </head>
     <body>
-        <div id="header">
+        <div>
             <h1>Calculation results</h1>
         </div>
 
-        <div id="section">
-            <h1>Total instruments</h1>
+        <div>
+            <h4>Total instruments</h4>
             <p>{{totalInstruments}}</p>
         </div>
-        <div id="section">
-            <h1>Number of lines processed</h1>
+        <div>
+            <h4>Number of lines processed</h4>
             <p>{{numberOfLinesProcessed}}</p>
         </div>
-        <div id="section">
-            <h1>Time elapsed</h1>
+        <div>
+            <h4>Time elapsed</h4>
             <p>{{timeElapsed}}</p>
         </div>
-        <div id="section">
-            <h1>Calculated values</h1>
+        <div>
+            <h4>Calculated values</h4>
             <p>
                 {{#calculatedValues}}
                     <li>{{.}}</li>
                 {{/calculatedValues}}
             </p>
         </div>
+        <br><br>
 
-        <div id="footer">
-            Good bye!
+        <div>
+            <h6>Good bye!</h6>
         </div>
     </body>
 </html>

@@ -6,7 +6,9 @@ import com.infusion.correction.CachedDatabaseMultiplierProvider
 import com.infusion.correction.DatabaseMultiplierProvider
 import com.infusion.correction.H2QueryRunner
 import com.infusion.output.HtmlResultWriter
-import com.infusion.output.StdOutResultWriter
+import com.infusion.output.PlainTextResultWriter
+import com.infusion.output.printer.FilePrinter
+import com.infusion.output.printer.StdOutPrinter
 import org.springframework.beans.factory.config.MapFactoryBean
 import org.springframework.core.io.FileSystemResource
 import org.springframework.jdbc.datasource.SimpleDriverDataSource
@@ -60,9 +62,11 @@ beans {
         multiplierProvider(DatabaseMultiplierProvider, databaseQueryRunner)
     }
 
-    stdOutResultWriter(StdOutResultWriter)
-    htmlResultWriter(HtmlResultWriter, 'target/result.html')
+    stdOutPrinter(StdOutPrinter)
+    filePrinter(FilePrinter, 'target/result.html')
+    stdOutPlainTextResultWriter(PlainTextResultWriter, stdOutPrinter)
+    htmlFileResultWriter(HtmlResultWriter, filePrinter)
 
 
-    meanValuesCalculationEngine(InstrumentMetricsCalculationEngine, App.getPathToFile(), calculationStrategiesProvider, multiplierProvider, [stdOutResultWriter, htmlResultWriter])
+    meanValuesCalculationEngine(InstrumentMetricsCalculationEngine, App.getPathToFile(), calculationStrategiesProvider, multiplierProvider, [stdOutPlainTextResultWriter, htmlFileResultWriter])
 }
