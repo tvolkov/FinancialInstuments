@@ -31,11 +31,7 @@ public class HtmlResultWriter extends AbstractResultWriter {
 
     private List<String> getCalculatedValuesList(Iterator<Map.Entry<String, CalculationStrategy>> iterator){
         List<String> list = new ArrayList<>();
-        iterator.forEachRemaining(entry -> {
-            StringBuilder sb = new StringBuilder();
-            sb.append(entry.getKey()).append(": ").append(entry.getValue().getResult());
-            list.add(sb.toString());
-        });
+        iterator.forEachRemaining(entry -> list.add(entry.getKey() + ": " + entry.getValue().getResult()));
         return list;
     }
 }
