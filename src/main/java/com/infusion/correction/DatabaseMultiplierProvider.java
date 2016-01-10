@@ -17,7 +17,7 @@ import java.util.concurrent.*;
 public class DatabaseMultiplierProvider implements MultiplierProvider {
     private static final Logger LOGGER = LoggerFactory.getLogger(DatabaseMultiplierProvider.class);
 
-    LoadingCache<String, Double> instrumentPriceMultipliers = CacheBuilder.newBuilder()
+    private LoadingCache<String, Double> instrumentPriceMultipliers = CacheBuilder.newBuilder()
             .maximumSize(10000)
             .expireAfterWrite(1, TimeUnit.SECONDS)
             .build(
@@ -37,10 +37,9 @@ public class DatabaseMultiplierProvider implements MultiplierProvider {
     @Override
     public double getMultiplierForInstrument(String instrument) {
         try {
-            return instrumentPriceMultipliers.get/*Unchecked*/(instrument);
+            return instrumentPriceMultipliers.get(instrument);
         } catch (ExecutionException e) {
-            LOGGER.error("caught execution exception while getting multiplier from cache: " + e.getMessage());
-            e.printStackTrace();
+            LOGGER.error("caught execution exception while getting multiplier from cache: " + e);
             return 1d;
         }
     }

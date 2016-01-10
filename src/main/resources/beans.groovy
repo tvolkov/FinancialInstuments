@@ -1,18 +1,15 @@
 import com.infusion.App
 import com.infusion.calculation.CalculationStrategyProvider
-import com.infusion.calculation.DefaultCalculationStrategy
 import com.infusion.calculation.InstrumentMetricsCalculationEngine
 import com.infusion.calculation.MeanCalculationStrategy
 import com.infusion.output.StdOutResultWriter
 import com.infusion.correction.DatabaseMultiplierProvider
-import com.infusion.correction.DummyMultiplierProvider
+
 import com.infusion.correction.H2QueryRunner
 import com.jolbox.bonecp.BoneCPDataSource
-import org.apache.commons.math3.stat.descriptive.moment.Mean
 import org.springframework.beans.factory.config.MapFactoryBean
 
 import java.time.LocalDate
-import java.util.concurrent.ConcurrentHashMap
 
 beans {
     xmlns context:"http://www.springframework.org/schema/context"
@@ -21,7 +18,6 @@ beans {
     totalMeanCalculationStrategy(MeanCalculationStrategy)
     november2014MeanCalculationStrategy(MeanCalculationStrategy, LocalDate.of(2014, 11, 1), LocalDate.of(2014, 11, 30))
     year2014MeanCalculator(MeanCalculationStrategy, LocalDate.of(2014, 1, 1), LocalDate.of(2014, 12, 31))
-//    defaultSumCalculationStrategy(DefaultCalculationStrategy, 10)
 
     metricCalculators(MapFactoryBean) {
         sourceMap = [
@@ -32,8 +28,6 @@ beans {
     }
 
     calculationStrategiesProvider(CalculationStrategyProvider, metricCalculators)
-
-    dummyMultiplierProvider(DummyMultiplierProvider)
 
     connectionProvider(BoneCPDataSource) {
         driverClass = 'org.h2.Driver'

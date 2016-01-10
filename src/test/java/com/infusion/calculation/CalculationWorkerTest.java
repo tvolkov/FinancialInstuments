@@ -1,6 +1,5 @@
 package com.infusion.calculation;
 
-import com.infusion.calculation.parser.LineParser;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -8,8 +7,6 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.locks.Condition;
-import java.util.concurrent.locks.Lock;
 
 import static junit.framework.TestCase.assertEquals;
 import static org.mockito.Mockito.*;

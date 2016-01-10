@@ -6,6 +6,7 @@ import com.infusion.calculation.ICalculationStrategyProvider;
 import java.util.Iterator;
 import java.util.Map;
 
+//todo create another resultwriters, like html, csv, or something else
 public class StdOutResultWriter implements ResultWriter {
 
     public StdOutResultWriter(){

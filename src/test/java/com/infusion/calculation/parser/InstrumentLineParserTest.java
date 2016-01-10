@@ -5,9 +5,12 @@ import static junit.framework.Assert.assertNotNull;
 import static junit.framework.TestCase.assertNull;
 import static org.junit.Assert.assertEquals;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.runners.MockitoJUnitRunner;
 
 import java.time.LocalDate;
 
+@RunWith(MockitoJUnitRunner.class)
 public class InstrumentLineParserTest {
 
     private InstrumentLineParser instrumentLineParser = new InstrumentLineParser();

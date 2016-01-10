@@ -1,7 +1,6 @@
 package com.infusion.calculation;
 
 import com.infusion.calculation.parser.InstrumentLineParser;
-import com.infusion.correction.DummyMultiplierProvider;
 import com.infusion.correction.MultiplierProvider;
 import org.junit.Before;
 import org.junit.Test;
@@ -20,7 +19,8 @@ public class CalculatorTest {
     @Mock
     private CalculationStrategyProvider calculationStrategyProvider;
 
-    private MultiplierProvider multiplierProvider = new DummyMultiplierProvider();
+    @Mock
+    private MultiplierProvider multiplierProvider;
 
     @Mock
     private InstrumentLineParser instrumentLineParser;
@@ -36,6 +36,7 @@ public class CalculatorTest {
 
     @Before
     public void setUp(){
+        when(multiplierProvider.getMultiplierForInstrument(anyString())).thenReturn(1d);
         this.calculator = new Calculator(calculationStrategyProvider, multiplierProvider, instrumentLineParser);
     }
 
