@@ -1,4 +1,4 @@
-I tried to make this application concurrent: it reads the input file in a separate thread and puts the lines read into
+Th app reads the input file in a separate thread and puts the lines read into
 the queue. On the other end of the queue there're several threads pulling the lines from it, parse 'em and make
 necessary calculations.
 The problem which was difficult for me to solve is how to arrange the database support, i.e. how to access the data,
